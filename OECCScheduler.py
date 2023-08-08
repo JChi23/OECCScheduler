@@ -32,6 +32,11 @@ class GraphicsScene(QtWidgets.QGraphicsScene):
     #     self.posX = event.scenePos().x()
     #     self.parent().parent().setPosition(event.scenePos().x()) # <-- crawl up the ancestry
     def mouseReleaseEvent(self, event):
+        items = self.selectedItems()
+        for item in items:
+            print("SELECTED ITEM")
+            print(item.x())
+            print(item.y())
         super().mouseReleaseEvent(event)
         print("Mouse Release Event in Graphic")
 
@@ -41,51 +46,7 @@ class GraphicsView(QtWidgets.QGraphicsView):
         super(GraphicsView, self).__init__(parent)
         #super().__init__(parent)
         print("noo2")
-        # self.setMouseTracking(True)
-        # self.scene = GraphicsScene(0, 0, 400, 800, self)
-
-        # rect = self.scene.addRect(0, 0, 200, 50)
-        # rect.setPos(50, 20)
-
-        # # Define the brush (fill).
-        # brush = QBrush(Qt.GlobalColor.red)
-        # rect.setBrush(brush)
-        # rect.setFlags(QGraphicsItem.GraphicsItemFlag.ItemIsMovable | QGraphicsItem.GraphicsItemFlag.ItemIsSelectable)
-
-        # # List out time slots
-        # # numHours = 8
-        # # startHour = 7
-        # # startMinute = 30
-        # # AMPMTag = "AM"
-
-        # # for i in range(0,4 * numHours):
-        # #     if startHour < 10:
-        # #         textHour = "0" + str(startHour)
-        # #     else:
-        # #         textHour = str(startHour)
-            
-        # #     if startMinute == 0:
-        # #         textMinute = "00"
-        # #     else:
-        # #         textMinute = str(startMinute)
-            
-        # #     textitem = self.scene.addText( textHour + ":" + textMinute + " " + AMPMTag)
-        # #     textitem.setPos(0, blockSize * i)
-
-        # #     startMinute += 15
-        # #     if startMinute >= 60:
-        # #         startMinute = 0
-        # #         startHour += 1
-        # #         if startHour >= 13:
-        # #             startHour = 1
-        # #         elif startHour == 12:
-        # #             if AMPMTag == "AM":
-        # #                 AMPMTag = "PM"
-        # #             else:
-        # #                 AMPMTag = "AM"
-
-
-        # self.setScene(self.scene)
+        
 
 class Window(QWidget):
 
@@ -116,67 +77,67 @@ class Window(QWidget):
 
 
         # List out time slots
-        # numHours = 8
-        # startHour = 7
-        # startMinute = 30
-        # AMPMTag = "AM"
+        numHours = 8
+        startHour = 7
+        startMinute = 30
+        AMPMTag = "AM"
 
-        # for i in range(0,4 * numHours):
-        #     if startHour < 10:
-        #         textHour = "0" + str(startHour)
-        #     else:
-        #         textHour = str(startHour)
+        for i in range(0,4 * numHours):
+            if startHour < 10:
+                textHour = "0" + str(startHour)
+            else:
+                textHour = str(startHour)
             
-        #     if startMinute == 0:
-        #         textMinute = "00"
-        #     else:
-        #         textMinute = str(startMinute)
+            if startMinute == 0:
+                textMinute = "00"
+            else:
+                textMinute = str(startMinute)
             
-        #     textitem = self.scene.addText( textHour + ":" + textMinute + " " + AMPMTag)
-        #     textitem.setPos(0, self.blockSize * i)
+            textitem = self.scene.addText( textHour + ":" + textMinute + " " + AMPMTag)
+            textitem.setPos(0, self.blockSize * i)
 
-        #     startMinute += 15
-        #     if startMinute >= 60:
-        #         startMinute = 0
-        #         startHour += 1
-        #         if startHour >= 13:
-        #             startHour = 1
-        #         elif startHour == 12:
-        #             if AMPMTag == "AM":
-        #                 AMPMTag = "PM"
-        #             else:
-        #                 AMPMTag = "AM"
+            startMinute += 15
+            if startMinute >= 60:
+                startMinute = 0
+                startHour += 1
+                if startHour >= 13:
+                    startHour = 1
+                elif startHour == 12:
+                    if AMPMTag == "AM":
+                        AMPMTag = "PM"
+                    else:
+                        AMPMTag = "AM"
 
 
-        # Draw a rectangle item, setting the dimensions.
-        rect = QGraphicsRectItem(0, 0, 200, 50)
-        rect.setPos(50, 20)
-        brush = QBrush(Qt.GlobalColor.red)
-        rect.setBrush(brush)
+        # # Draw a rectangle item, setting the dimensions.
+        # rect = QGraphicsRectItem(0, 0, 200, 50)
+        # rect.setPos(50, 20)
+        # brush = QBrush(Qt.GlobalColor.red)
+        # rect.setBrush(brush)
 
-        # Define the pen (line)
-        pen = QPen(Qt.GlobalColor.cyan)
-        pen.setWidth(10)
-        rect.setPen(pen)
+        # # Define the pen (line)
+        # pen = QPen(Qt.GlobalColor.cyan)
+        # pen.setWidth(10)
+        # rect.setPen(pen)
 
-        ellipse = QGraphicsEllipseItem(0, 0, 100, 100)
-        ellipse.setPos(75, 30)
+        # ellipse = QGraphicsEllipseItem(0, 0, 100, 100)
+        # ellipse.setPos(75, 30)
 
-        brush = QBrush(Qt.GlobalColor.blue)
-        ellipse.setBrush(brush)
+        # brush = QBrush(Qt.GlobalColor.blue)
+        # ellipse.setBrush(brush)
 
-        pen = QPen(Qt.GlobalColor.green)
-        pen.setWidth(5)
-        ellipse.setPen(pen)
+        # pen = QPen(Qt.GlobalColor.green)
+        # pen.setWidth(5)
+        # ellipse.setPen(pen)
 
-        # Add the items to the scene. Items are stacked in the order they are added.
-        self.scene.addItem(ellipse)
-        self.scene.addItem(rect)
+        # # Add the items to the scene. Items are stacked in the order they are added.
+        # self.scene.addItem(ellipse)
+        # self.scene.addItem(rect)
 
-        # Set all items as moveable and selectable.
-        for item in self.scene.items():
-            item.setFlag(QGraphicsItem.GraphicsItemFlag.ItemIsMovable)
-            item.setFlag(QGraphicsItem.GraphicsItemFlag.ItemIsSelectable)
+        # # Set all items as moveable and selectable.
+        # for item in self.scene.items():
+        #     item.setFlag(QGraphicsItem.GraphicsItemFlag.ItemIsMovable)
+        #     item.setFlag(QGraphicsItem.GraphicsItemFlag.ItemIsSelectable)
 
 
 
