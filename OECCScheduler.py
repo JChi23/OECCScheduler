@@ -70,10 +70,8 @@ class Window(QWidget):
         # Defining a scene rect of 400x200, with it's origin at 0,0.
         # If we don't set this on creation, we can set it later with .setSceneRect
         self.setWindowTitle("Scheduler")
-        #self.scene = QGraphicsScene(0, 0, 400, 800)
         self.scene = GraphicsScene(0, 0, 400, 800)
-        # self.Layout = QtWidgets.QVBoxLayout()
-        # self.gw = GraphicsView(self) # <-- pass self here
+        
 
 
         # List out time slots
