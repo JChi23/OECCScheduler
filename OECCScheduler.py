@@ -1,6 +1,7 @@
 
 import sys
 
+from typing import List
 
 from PyQt6 import QtWidgets
 from PyQt6.QtCore import Qt
@@ -12,6 +13,7 @@ from PyQt6.QtWidgets import (
     QGraphicsItem,
     QGraphicsRectItem,
     QGraphicsScene,
+    QGraphicsSceneMouseEvent,
     QGraphicsView,
     QHBoxLayout,
     QPushButton,
@@ -22,6 +24,10 @@ from PyQt6.QtWidgets import (
 )
 
 class GraphicsScene(QtWidgets.QGraphicsScene):
+
+    schedule = []
+    selectedOrder = 0
+
     def __init__(self, parent=None):
         super().__init__(parent)
         print("noo")
@@ -33,14 +39,68 @@ class GraphicsScene(QtWidgets.QGraphicsScene):
     # def mouseMoveEvent(self, event):
     #     self.posX = event.scenePos().x()
     #     self.parent().parent().setPosition(event.scenePos().x()) # <-- crawl up the ancestry
+    def mousePressEvent(self, event):
+        super().mousePressEvent(event)
+        items = self.selectedItems()
+        for item in items:
+            print("SELECTED ITEM2")
+            print(item.x())
+            print(item.y())
+
+        for block in self.schedule:
+                try:
+                    if (block.isFull == True and
+                        abs(block.y - item.y()) < abs(newY - item.y())):
+                        newY = block.y
+                        newBlock = block.order
+                except:
+                    break
+        print("Mouse press event in graphic")
+
     def mouseReleaseEvent(self, event):
         items = self.selectedItems()
+        # for item in items:
+        #     print("SELECTED ITEM")
+        #     print(item.x())
+        #     print(item.y())
+            
+        #     newX = 80
+        #     newY = 0
+        #     for block in self.schedule:
+        #         try:
+        #             if abs(block.y - item.y()) < abs(newY - item.y()):
+        #                 newY = block.y
+        #         except:
+        #             break
+
+
+        super().mouseReleaseEvent(event)
+        print("Mouse Release Event in Graphic")
+
         for item in items:
             print("SELECTED ITEM")
             print(item.x())
             print(item.y())
-        super().mouseReleaseEvent(event)
-        print("Mouse Release Event in Graphic")
+            
+            newBlock = 0
+            #newX = 0
+            newY = 0
+            for block in self.schedule:
+                try:
+                    if (block.isFull != True and
+                        abs(block.y - item.y()) < abs(newY - item.y())):
+                        newY = block.y
+                        newBlock = block.order
+                except:
+                    break
+            
+            #item.setPos(newX, newY)
+            item.setY(newY)
+            try:
+                self.schedule
+                self.schedule[newBlock].isFull = True
+            except:
+                break
 
 
 class GraphicsView(QtWidgets.QGraphicsView):
@@ -49,10 +109,20 @@ class GraphicsView(QtWidgets.QGraphicsView):
         #super().__init__(parent)
         print("noo2")
         
+class Block():
+    
+    def __init__(self, order=0, y=0, prev=None, next=None, blocks=[]):
+        self.order = order
+        self.blocks = blocks
+        self.y = y
+        self.prev = prev
+        self.next = next
+        self.isFull = False
+
 
 class Window(QWidget):
 
-    schedule = {}
+    schedule = []
     blockSize = 24
     blockType = "Regular"
     blockTimes = {
@@ -75,15 +145,16 @@ class Window(QWidget):
         startHour = 7
         startMinute = 30
         AMPMTag = "AM"
+        numBlocks = 4 * numHours + 1
 
             # Defining a scene rect of 400x200, with it's origin at 0,0.
         self.setWindowTitle("Scheduler")
-        self.scene = GraphicsScene(0, 0, 260, self.blockSize * 4 * numHours)
+        self.scene = GraphicsScene(0, 0, 260, self.blockSize * numBlocks)
         
 
 
             # Add time slots & corresponding boxes to graphics scene
-        for i in range(0,4 * numHours):
+        for i in range(0,numBlocks):
             if startHour < 10:
                 textHour = "0" + str(startHour)
             else:
@@ -97,11 +168,14 @@ class Window(QWidget):
             textItem = self.scene.addText( textHour + ":" + textMinute + " " + AMPMTag)
             textItem.setPos(0, self.blockSize * i)
 
-            timeBox = QGraphicsRectItem(0, self.blockSize * i, 80, 24)
+            #self.schedule.append(Block(i, self.blockSize * i + (self.blockSize / 2)))
+            self.scene.schedule.append(Block(i, self.blockSize * i))
+
+            timeBox = QGraphicsRectItem(0, self.blockSize * i, 80, self.blockSize)
             timeBox.setBrush(QColor(255, 0, 0, 0))
             timeBox.setPen(QPen(Qt.GlobalColor.black))
             self.scene.addItem(timeBox)
-            blockBox = QGraphicsRectItem(80, self.blockSize * i, 180, 24)
+            blockBox = QGraphicsRectItem(80, self.blockSize * i, 180, self.blockSize)
             blockBox.setBrush(QColor(255, 0, 0, 0))
             blockBox.setPen(QPen(Qt.GlobalColor.black))
             self.scene.addItem(blockBox)
@@ -210,21 +284,39 @@ class Window(QWidget):
     def insert(self):
         """" Insert a new schedule block """
 
-        # Draw a rectangle item, setting the dimensions.
-        rect = QGraphicsRectItem(0, 0, 100, self.blockSize * self.blockTimes[self.blockType])
-        rect.setPos(50, 20)
-        brush = QBrush(Qt.GlobalColor.red)
-        rect.setBrush(brush)
-        
+        # Find first empty block in scene
+        firstEmpty = -1
+        firstY = -1
+        for block in self.scene.schedule:
+            try: 
+                if block.isFull == False:
+                    firstEmpty = block.order
+                    firstY = block.y
+                    break
+            except:
+                break
 
-        # Define the pen (line)
-        pen = QPen(Qt.GlobalColor.black)
-        # pen.setWidth(10)
-        rect.setPen(pen)
-        self.scene.addItem(rect)
-        #self.view.scene.addItem(rect)
-        rect.setFlag(QGraphicsItem.GraphicsItemFlag.ItemIsMovable)
-        rect.setFlag(QGraphicsItem.GraphicsItemFlag.ItemIsSelectable)
+        if firstEmpty != -1:
+
+            # Draw a rectangle item, setting the dimensions and location corresponding to empty block.
+            rect = QGraphicsRectItem(80, firstY, 100, self.blockSize * self.blockTimes[self.blockType])
+            #rect.setPos(50, 20)
+            brush = QBrush(self.blockColors[self.blockType])
+            rect.setBrush(brush)
+            
+
+            # Define the pen (line)
+            pen = QPen(Qt.GlobalColor.black)
+            # pen.setWidth(10)
+            rect.setPen(pen)
+            self.scene.addItem(rect)
+            try:
+                self.scene.schedule[firstEmpty].isFull = True
+            except:
+                print("There was an issue")
+            #self.view.scene.addItem(rect)
+            rect.setFlag(QGraphicsItem.GraphicsItemFlag.ItemIsMovable)
+            rect.setFlag(QGraphicsItem.GraphicsItemFlag.ItemIsSelectable)
 
     #def selectItem(self):
 
@@ -236,8 +328,8 @@ class Window(QWidget):
     #         # pass on other buttons to base class
     #         QCheckBox.mousePressEvent(event)
 
-    def mouseReleaseEvent(self, event):
-        print("Mouse Release Event")
+    # def mouseReleaseEvent(self, event):
+    #     print("Mouse Release Event")
         
 
     def index_changed(self, i): # i is an int
