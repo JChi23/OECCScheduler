@@ -1,9 +1,10 @@
 
 import sys
 
+
 from PyQt6 import QtWidgets
 from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QBrush, QPainter, QPen
+from PyQt6.QtGui import QBrush, QPainter, QPen, QColor
 from PyQt6.QtWidgets import (
     QApplication,
     QComboBox,
@@ -17,6 +18,7 @@ from PyQt6.QtWidgets import (
     QSlider,
     QVBoxLayout,
     QWidget,
+
 )
 
 class GraphicsScene(QtWidgets.QGraphicsScene):
@@ -50,6 +52,7 @@ class GraphicsView(QtWidgets.QGraphicsView):
 
 class Window(QWidget):
 
+    schedule = {}
     blockSize = 24
     blockType = "Regular"
     blockTimes = {
@@ -67,19 +70,19 @@ class Window(QWidget):
     def __init__(self):
         super().__init__()
 
-        # Defining a scene rect of 400x200, with it's origin at 0,0.
-        # If we don't set this on creation, we can set it later with .setSceneRect
-        self.setWindowTitle("Scheduler")
-        self.scene = GraphicsScene(0, 0, 400, 800)
-        
-
-
-        # List out time slots
+        # Defining scene and adding basic layout elements to scene
         numHours = 8
         startHour = 7
         startMinute = 30
         AMPMTag = "AM"
 
+            # Defining a scene rect of 400x200, with it's origin at 0,0.
+        self.setWindowTitle("Scheduler")
+        self.scene = GraphicsScene(0, 0, 260, self.blockSize * 4 * numHours)
+        
+
+
+            # Add time slots & corresponding boxes to graphics scene
         for i in range(0,4 * numHours):
             if startHour < 10:
                 textHour = "0" + str(startHour)
@@ -91,8 +94,17 @@ class Window(QWidget):
             else:
                 textMinute = str(startMinute)
             
-            textitem = self.scene.addText( textHour + ":" + textMinute + " " + AMPMTag)
-            textitem.setPos(0, self.blockSize * i)
+            textItem = self.scene.addText( textHour + ":" + textMinute + " " + AMPMTag)
+            textItem.setPos(0, self.blockSize * i)
+
+            timeBox = QGraphicsRectItem(0, self.blockSize * i, 80, 24)
+            timeBox.setBrush(QColor(255, 0, 0, 0))
+            timeBox.setPen(QPen(Qt.GlobalColor.black))
+            self.scene.addItem(timeBox)
+            blockBox = QGraphicsRectItem(80, self.blockSize * i, 180, 24)
+            blockBox.setBrush(QColor(255, 0, 0, 0))
+            blockBox.setPen(QPen(Qt.GlobalColor.black))
+            self.scene.addItem(blockBox)
 
             startMinute += 15
             if startMinute >= 60:
@@ -106,6 +118,8 @@ class Window(QWidget):
                     else:
                         AMPMTag = "AM"
 
+
+        
 
         # # Draw a rectangle item, setting the dimensions.
         # rect = QGraphicsRectItem(0, 0, 200, 50)
@@ -195,8 +209,6 @@ class Window(QWidget):
 
     def insert(self):
         """" Insert a new schedule block """
-        print("hello")
-
 
         # Draw a rectangle item, setting the dimensions.
         rect = QGraphicsRectItem(0, 0, 100, self.blockSize * self.blockTimes[self.blockType])
@@ -206,8 +218,8 @@ class Window(QWidget):
         
 
         # Define the pen (line)
-        pen = QPen(Qt.GlobalColor.cyan)
-        pen.setWidth(10)
+        pen = QPen(Qt.GlobalColor.black)
+        # pen.setWidth(10)
         rect.setPen(pen)
         self.scene.addItem(rect)
         #self.view.scene.addItem(rect)
