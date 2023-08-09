@@ -29,6 +29,7 @@ class GraphicsScene(QGraphicsScene):
 
     schedule = []
     selectedOrder = 0
+    oldSelected = []
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -44,10 +45,20 @@ class GraphicsScene(QGraphicsScene):
     def mousePressEvent(self, event):
         super().mousePressEvent(event)
         items = self.selectedItems()
+        for item in self.oldSelected:
+            try:
+                if item not in items:
+                    item.setOpacity(1)
+                    item.update()
+            except:
+                print("there was an error with updating opacity")
+        
+        self.oldSelected = items
+
         for item in items:
-            print("SELECTED ITEM2")
-            print(item.pos().x(), item.pos().y())
-            print(item.scenePos().x(), item.scenePos().y())
+            # print("SELECTED ITEM2")
+            # print(item.pos().x(), item.pos().y())
+            # print(item.scenePos().x(), item.scenePos().y())
 
             item.setOpacity(0.5)
             item.update()
@@ -92,12 +103,9 @@ class GraphicsScene(QGraphicsScene):
         print("Mouse Release Event in Graphic")
 
         for item in items:
-            print("SELECTED ITEM")
-            print(item.pos().x(), item.pos().y())
-            print(item.scenePos().x(), item.scenePos().y())
-            
-            item.setOpacity(1)
-            item.update()
+            # print("SELECTED ITEM")
+            # print(item.pos().x(), item.pos().y())
+            # print(item.scenePos().x(), item.scenePos().y())
 
             newBlock = 0
             if item.data(0) is not None:
@@ -397,27 +405,26 @@ class Window(QWidget):
                 break
 
     def save(self):
-        with open("SavedSchedule.txt", "w") as scheduleFile:
-            schedule = np.zeros((len(self.scene.schedule), 2))
-            scheduleStr = ''
-            for item in self.scene.items():
-                if item.data(2) is not None:
-                    schedule[item.data(0), 0] = item.data(2)
-                    print("NEW ITEM")
-                    print(item.data(2))
-                    for i in range(item.data(1)):
-                        schedule[item.data(0) + i, 1] = 1
+        try:
+            with open("SavedSchedule.txt", "w") as scheduleFile:
+                schedule = np.zeros((len(self.scene.schedule), 2))
+                scheduleStr = ''
+                for item in self.scene.items():
+                    if item.data(2) is not None:
+                        schedule[item.data(0), 0] = item.data(2)
+                        for i in range(item.data(1)):
+                            schedule[item.data(0) + i, 1] = 1
 
-            for segment in schedule:
-                if segment[0] == 0 and segment[1] != 1:
-                    scheduleStr += "0\n"
-                elif segment[0] != 0:
-                    print("OLD ITEM")
-                    print(segment[0])
-                    scheduleStr += (str(int(segment[0])) + "\n")
+                for segment in schedule:
+                    if segment[0] == 0 and segment[1] != 1:
+                        scheduleStr += "0\n"
+                    elif segment[0] != 0:
+                        scheduleStr += (str(int(segment[0])) + "\n")
 
-            scheduleFile.write(scheduleStr)
-            print("Saved schedule")
+                scheduleFile.write(scheduleStr)
+                print("Saved schedule")
+        except:
+            print("Could not save schedule")
     
     def insertSaved(self, inputType = -1, skip = 0):
         """" Insert a new schedule block """
@@ -575,8 +582,12 @@ class Window(QWidget):
 
 app = QApplication(sys.argv)
 
-with open("SavedSchedule.txt", "r+") as scheduleFile:
-    savedSchedule = scheduleFile.read().splitlines()
+try:
+    with open("SavedSchedule.txt", "r+") as scheduleFile:
+        savedSchedule = scheduleFile.read().splitlines()
+except:
+    print("Could not open file")
+    savedSchedule = ['0']
 
 w = Window(saved=savedSchedule)
 w.show()
