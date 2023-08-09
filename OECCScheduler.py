@@ -10,6 +10,7 @@ from PyQt6.QtWidgets import (
     QApplication,
     QComboBox,
     QGraphicsEllipseItem,
+    QGraphicsLineItem,
     QGraphicsItem,
     QGraphicsRectItem,
     QGraphicsScene,
@@ -23,7 +24,7 @@ from PyQt6.QtWidgets import (
 
 )
 
-class GraphicsScene(QtWidgets.QGraphicsScene):
+class GraphicsScene(QGraphicsScene):
 
     schedule = []
     selectedOrder = 0
@@ -46,6 +47,12 @@ class GraphicsScene(QtWidgets.QGraphicsScene):
             print("SELECTED ITEM2")
             print(item.x())
             print(item.y())
+            # for cItem in item.collidingItems():
+            #     print("NEW ITEM")
+            #     print(cItem.x())
+            #     print(cItem.y())
+
+        
 
         for block in self.schedule:
                 try:
@@ -94,8 +101,8 @@ class GraphicsScene(QtWidgets.QGraphicsScene):
                 except:
                     break
             
-            #item.setPos(newX, newY)
-            item.setY(newY)
+            item.setPos(0, newY)
+            #item.setY(newY)
             try:
                 self.schedule
                 self.schedule[newBlock].isFull = True
@@ -103,13 +110,13 @@ class GraphicsScene(QtWidgets.QGraphicsScene):
                 break
 
 
-class GraphicsView(QtWidgets.QGraphicsView):
+class GraphicsView(QGraphicsView):
     def __init__(self, parent=None, blockSize=24):
         super(GraphicsView, self).__init__(parent)
         #super().__init__(parent)
         print("noo2")
         
-class Block():
+class BlockSegment():
     
     def __init__(self, order=0, y=0, prev=None, next=None, blocks=[]):
         self.order = order
@@ -169,16 +176,32 @@ class Window(QWidget):
             textItem.setPos(0, self.blockSize * i)
 
             #self.schedule.append(Block(i, self.blockSize * i + (self.blockSize / 2)))
-            self.scene.schedule.append(Block(i, self.blockSize * i))
+            #self.scene.schedule.append(BlockSegment(i * 4, self.blockSize * i))
 
             timeBox = QGraphicsRectItem(0, self.blockSize * i, 80, self.blockSize)
             timeBox.setBrush(QColor(255, 0, 0, 0))
             timeBox.setPen(QPen(Qt.GlobalColor.black))
             self.scene.addItem(timeBox)
+            # for j in range(1,4):
+            #     blockLine = QGraphicsLineItem(80, (self.blockSize * i) + ((self.blockSize / 4) * j), 
+            #                                   260, (self.blockSize * i) + ((self.blockSize / 4) * j))
+            #     blockLine.setPen(QPen(Qt.GlobalColor.gray))
+            #     self.scene.addItem(blockLine)
+            #     self.scene.schedule.append(BlockSegment(i * 4 + j, (self.blockSize * i) + ((self.blockSize / 4) * j)))
+            for j in range(4):
+                blockSegBox = QGraphicsRectItem(80, (self.blockSize * i) + ((self.blockSize / 4) * j),
+                                                 180, (self.blockSize / 4))
+                blockSegBox.setBrush(QColor(255, 0, 0, 0))
+                blockSegBox.setPen(QPen(Qt.GlobalColor.gray))
+                blockSegBox.setData(0, i * 4 + j)   # Set 0 to be the id of block segment
+                blockSegBox.setData(1, 0)           # Set 1 to represent full-ness (0 empty, 1 occupied)
+                self.scene.addItem(blockSegBox)
+                self.scene.schedule.append(BlockSegment(i * 4 + j, (self.blockSize * i) + ((self.blockSize / 4) * j)))
             blockBox = QGraphicsRectItem(80, self.blockSize * i, 180, self.blockSize)
             blockBox.setBrush(QColor(255, 0, 0, 0))
             blockBox.setPen(QPen(Qt.GlobalColor.black))
             self.scene.addItem(blockBox)
+            
 
             startMinute += 15
             if startMinute >= 60:
@@ -193,7 +216,20 @@ class Window(QWidget):
                         AMPMTag = "AM"
 
 
-        
+        # Add breaktime
+        breakBlockLength = 2
+        breakStart = 4 * 19
+        breakBlock = QGraphicsRectItem(80, self.blockSize * 19, 100, self.blockSize * breakBlockLength)
+        breakBlock.setBrush(QBrush(Qt.GlobalColor.yellow))
+        breakBlock.setPen(QPen(Qt.GlobalColor.black))
+        breakBlock.setData(0, breakStart)                                     # id of first block segment that break occupies
+        breakBlock.setData(1, self.blockSize * breakBlockLength)     # number of segments that break occupies
+        self.scene.addItem(breakBlock)
+        try:
+            for i in range(4 * breakBlockLength):
+                self.scene.schedule[breakStart + i].isFull = True
+        except:
+            print("There was an issue")
 
         # # Draw a rectangle item, setting the dimensions.
         # rect = QGraphicsRectItem(0, 0, 200, 50)
@@ -244,6 +280,10 @@ class Window(QWidget):
         setBlock.currentTextChanged.connect( self.text_changed )
         vbox.addWidget(setBlock)
 
+        delete = QPushButton("Delete")
+        delete.clicked.connect(self.delete)
+        vbox.addWidget(delete)
+
         listItems = QPushButton("List")
         listItems.clicked.connect(self.listItems)
         vbox.addWidget(listItems)
@@ -280,19 +320,29 @@ class Window(QWidget):
             print(item.x())
             print(item.y())
             
+    def delete(self):
+        for item in self.scene.selectedItems():
+            self.scene.removeItem(item)
 
     def insert(self):
         """" Insert a new schedule block """
 
-        # Find first empty block in scene
+        # Find first empty block in scene that can accommodate new insertion
         firstEmpty = -1
         firstY = -1
         for block in self.scene.schedule:
-            try: 
+            try: #this can be optimized to not recheck block segments
                 if block.isFull == False:
-                    firstEmpty = block.order
-                    firstY = block.y
-                    break
+                    isColliding = False
+                    for i in range(int(self.blockTimes[self.blockType] * 4) - 1):
+                        if self.scene.schedule[block.order + i].isFull == True:
+                            isColliding = True
+                            break
+                    
+                    if not isColliding:
+                        firstEmpty = block.order
+                        firstY = block.y
+                        break
             except:
                 break
 
@@ -300,10 +350,9 @@ class Window(QWidget):
 
             # Draw a rectangle item, setting the dimensions and location corresponding to empty block.
             rect = QGraphicsRectItem(80, firstY, 100, self.blockSize * self.blockTimes[self.blockType])
-            #rect.setPos(50, 20)
-            brush = QBrush(self.blockColors[self.blockType])
-            rect.setBrush(brush)
-            
+            rect.setBrush(QBrush(self.blockColors[self.blockType]))
+            rect.setData(0, firstEmpty)                                     # id of first block segment that rect occupies
+            rect.setData(1, int(self.blockTimes[self.blockType] * 4))     # number of segments that rect occupies
 
             # Define the pen (line)
             pen = QPen(Qt.GlobalColor.black)
@@ -311,7 +360,9 @@ class Window(QWidget):
             rect.setPen(pen)
             self.scene.addItem(rect)
             try:
-                self.scene.schedule[firstEmpty].isFull = True
+                for i in range(int(self.blockTimes[self.blockType] * 4)):
+                    self.scene.schedule[firstEmpty + i].isFull = True
+                
             except:
                 print("There was an issue")
             #self.view.scene.addItem(rect)
