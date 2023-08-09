@@ -144,7 +144,7 @@ class Window(QWidget):
     }
     firstEmptyBlock = 0
 
-    def __init__(self):
+    def __init__(self, saved=None):
         super().__init__()
 
         # Defining scene and adding basic layout elements to scene
@@ -231,6 +231,19 @@ class Window(QWidget):
         except:
             print("There was an issue")
 
+        skipCount = 0
+        for savedBlock in saved:
+            if int(savedBlock) == 0:
+                skipCount += 1
+            else:
+                self.insertSaved(int(savedBlock), skipCount)
+                if int(savedBlock) == 1:
+                    skipCount += 4
+                elif int(savedBlock) == 2:
+                    skipCount += 5
+                elif int(savedBlock) == 3:
+                    skipCount += 6
+
         # # Draw a rectangle item, setting the dimensions.
         # rect = QGraphicsRectItem(0, 0, 200, 50)
         # rect.setPos(50, 20)
@@ -284,6 +297,10 @@ class Window(QWidget):
         delete.clicked.connect(self.delete)
         vbox.addWidget(delete)
 
+        clear = QPushButton("Clear")
+        clear.clicked.connect(self.clear)
+        vbox.addWidget(clear)
+
         listItems = QPushButton("List")
         listItems.clicked.connect(self.listItems)
         vbox.addWidget(listItems)
@@ -322,19 +339,101 @@ class Window(QWidget):
             
     def delete(self):
         for item in self.scene.selectedItems():
+            if item.data(0) is not None and item.data(1) is not None:
+                for cItem in item.collidingItems():
+                    if (cItem.data(0) is not None and
+                        item.data(0) == cItem.data(0)):
+                        for i in range(item.data(1)):
+                            self.scene.schedule[item.data(0) + i].isFull = False
             self.scene.removeItem(item)
 
-    def insert(self):
+    def clear(self):
+        for item in self.scene.items():
+            if item.data(2) is not None:
+                self.scene.removeItem(item)
+        
+        for block in self.scene.schedule:
+            try:
+                block.isFull = False
+            except:
+                break
+    
+    def insertSaved(self, inputType = -1, skip = 0):
         """" Insert a new schedule block """
-
+        
+        if inputType == 0:
+            return
+        elif inputType == 1:
+            blockType = "Regular"
+        elif inputType == 2:
+            blockType = "Laser"
+        elif inputType == 3:
+            blockType = "Premium"
+        else:
+            blockType = self.blockType
         # Find first empty block in scene that can accommodate new insertion
         firstEmpty = -1
         firstY = -1
+        numSkips = skip
+        print("SKIPS: ", numSkips)
         for block in self.scene.schedule:
+            if numSkips > 0:
+                numSkips -= 1
+            else:
+                try: #this can be optimized to not recheck block segments
+                    if block.isFull == False:
+                        isColliding = False
+                        for i in range(int(self.blockTimes[blockType] * 4) - 1):
+                            if self.scene.schedule[block.order + i].isFull == True:
+                                isColliding = True
+                                break
+                        
+                        if not isColliding:
+                            firstEmpty = block.order
+                            firstY = block.y
+                            break
+                except:
+                    break
+
+        if firstEmpty != -1:
+
+            # Draw a rectangle item, setting the dimensions and location corresponding to empty block.
+            rect = QGraphicsRectItem(80, firstY, 100, self.blockSize * self.blockTimes[blockType])
+            rect.setBrush(QBrush(self.blockColors[blockType]))
+            rect.setData(0, firstEmpty)                                     # id of first block segment that rect occupies
+            rect.setData(1, int(self.blockTimes[blockType] * 4))     # number of segments that rect occupies
+            rect.setData(2, 1)                                          # identifier for graphics to tell that this is a rect
+
+            # Define the pen (line)
+            pen = QPen(Qt.GlobalColor.black)
+            # pen.setWidth(10)
+            rect.setPen(pen)
+            self.scene.addItem(rect)
+            try:
+                for i in range(int(self.blockTimes[blockType] * 4)):
+                    self.scene.schedule[firstEmpty + i].isFull = True
+                
+            except:
+                print("There was an issue")
+            #self.view.scene.addItem(rect)
+            rect.setFlag(QGraphicsItem.GraphicsItemFlag.ItemIsMovable)
+            rect.setFlag(QGraphicsItem.GraphicsItemFlag.ItemIsSelectable)
+    
+
+    def insert(self):
+        """" Insert a new schedule block """
+        
+        blockType = self.blockType
+        # Find first empty block in scene that can accommodate new insertion
+        firstEmpty = -1
+        firstY = -1
+
+        for block in self.scene.schedule:
+            
             try: #this can be optimized to not recheck block segments
                 if block.isFull == False:
                     isColliding = False
-                    for i in range(int(self.blockTimes[self.blockType] * 4) - 1):
+                    for i in range(int(self.blockTimes[blockType] * 4) - 1):
                         if self.scene.schedule[block.order + i].isFull == True:
                             isColliding = True
                             break
@@ -349,10 +448,11 @@ class Window(QWidget):
         if firstEmpty != -1:
 
             # Draw a rectangle item, setting the dimensions and location corresponding to empty block.
-            rect = QGraphicsRectItem(80, firstY, 100, self.blockSize * self.blockTimes[self.blockType])
-            rect.setBrush(QBrush(self.blockColors[self.blockType]))
+            rect = QGraphicsRectItem(80, firstY, 100, self.blockSize * self.blockTimes[blockType])
+            rect.setBrush(QBrush(self.blockColors[blockType]))
             rect.setData(0, firstEmpty)                                     # id of first block segment that rect occupies
-            rect.setData(1, int(self.blockTimes[self.blockType] * 4))     # number of segments that rect occupies
+            rect.setData(1, int(self.blockTimes[blockType] * 4))     # number of segments that rect occupies
+            rect.setData(2, 1)                                          # identifier for graphics to tell that this is a rect
 
             # Define the pen (line)
             pen = QPen(Qt.GlobalColor.black)
@@ -360,7 +460,7 @@ class Window(QWidget):
             rect.setPen(pen)
             self.scene.addItem(rect)
             try:
-                for i in range(int(self.blockTimes[self.blockType] * 4)):
+                for i in range(int(self.blockTimes[blockType] * 4)):
                     self.scene.schedule[firstEmpty + i].isFull = True
                 
             except:
@@ -413,7 +513,11 @@ class Window(QWidget):
 
 app = QApplication(sys.argv)
 
-w = Window()
+scheduleFile = open("SavedSchedule.txt", "r+")
+savedSchedule = scheduleFile.read().splitlines()
+scheduleFile.close()
+
+w = Window(saved=savedSchedule)
 w.show()
 
 app.exec()
