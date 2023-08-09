@@ -80,7 +80,7 @@ class GraphicsScene(QGraphicsScene):
         #                 newBlock = block.order
         #         except:
         #             break
-        print("Mouse press event in graphic")
+        # print("Mouse press event in graphic")
 
     def mouseReleaseEvent(self, event):
         items = self.selectedItems()
@@ -100,7 +100,7 @@ class GraphicsScene(QGraphicsScene):
 
 
         super().mouseReleaseEvent(event)
-        print("Mouse Release Event in Graphic")
+        # print("Mouse Release Event in Graphic")
 
         for item in items:
             # print("SELECTED ITEM")
