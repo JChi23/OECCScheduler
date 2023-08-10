@@ -1,171 +1,24 @@
+""" Represents the entire Scheduler window including the button functionality and graphics scene """
 
-import sys, os
+import os
 import numpy as np
 
-from typing import List
+from BlockSegment import BlockSegment
+from GraphicsScene import GraphicsScene
 
-from PyQt6 import QtWidgets
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QBrush, QPainter, QPen, QColor
 from PyQt6.QtWidgets import (
-    QApplication,
     QComboBox,
-    QGraphicsEllipseItem,
-    QGraphicsLineItem,
     QGraphicsItem,
     QGraphicsRectItem,
-    QGraphicsScene,
-    QGraphicsSceneMouseEvent,
     QGraphicsView,
     QHBoxLayout,
     QPushButton,
-    QSlider,
     QVBoxLayout,
     QWidget,
 
-)
-
-basedir = os.path.dirname(__file__)
-
-class GraphicsScene(QGraphicsScene):
-
-    schedule = []
-    selectedOrder = 0
-    oldSelected = []
-
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        print("noo")
-    
-    def __init__(self, x, y, width, height, parent=None):
-        super().__init__(x, y, width, height, parent)
-        print("noo1")
-
-    # def mouseMoveEvent(self, event):
-    #     self.posX = event.scenePos().x()
-    #     self.parent().parent().setPosition(event.scenePos().x()) # <-- crawl up the ancestry
-    def mousePressEvent(self, event):
-        super().mousePressEvent(event)
-        items = self.selectedItems()
-        for item in self.oldSelected:
-            try:
-                if item not in items:
-                    item.setOpacity(1)
-                    item.update()
-            except:
-                print("there was an error with updating opacity")
-        
-        self.oldSelected = items
-
-        for item in items:
-            # print("SELECTED ITEM2")
-            # print(item.pos().x(), item.pos().y())
-            # print(item.scenePos().x(), item.scenePos().y())
-
-            item.setOpacity(0.5)
-            item.update()
-            # for cItem in item.collidingItems():
-            #     print("NEW ITEM")
-            #     print(cItem.x())
-            #     print(cItem.y())
-            if item.data(1) is not None:
-                for i in range(item.data(1)):
-                        self.schedule[item.data(0) + i].isFull = False
-
-        
-
-        # for block in self.schedule:
-        #         try:
-        #             if (block.isFull == True and
-        #                 abs(block.y - item.y()) < abs(newY - item.y())):
-        #                 newY = block.y
-        #                 newBlock = block.order
-        #         except:
-        #             break
-        # print("Mouse press event in graphic")
-
-    def mouseReleaseEvent(self, event):
-        items = self.selectedItems()
-        # for item in items:
-        #     print("SELECTED ITEM")
-        #     print(item.x())
-        #     print(item.y())
-            
-        #     newX = 80
-        #     newY = 0
-        #     for block in self.schedule:
-        #         try:
-        #             if abs(block.y - item.y()) < abs(newY - item.y()):
-        #                 newY = block.y
-        #         except:
-        #             break
-
-
-        super().mouseReleaseEvent(event)
-        # print("Mouse Release Event in Graphic")
-
-        for item in items:
-            # print("SELECTED ITEM")
-            # print(item.pos().x(), item.pos().y())
-            # print(item.scenePos().x(), item.scenePos().y())
-
-            newBlock = 0
-            if item.data(0) is not None:
-                newBlock = item.data(0)
-            #newX = 0
-            newY = 0
-            for block in self.schedule: # can be optimized to only check for colliding things
-                try:
-                    if (block.isFull != True and
-                        abs(block.y - item.y()) < abs(newY - item.y())):
-                        isColliding = False
-
-                        for i in range(1, item.data(1)):
-                            if self.schedule[block.order + i].isFull == True:
-                                isColliding = True
-                                break
-                        
-                        if not isColliding:
-                            newY = block.y
-                            newBlock = block.order
-                            
-                except:
-                    break
-            
-            item.setPos(80, newY)
-            #item.setY(newY)
-            try:
-                # self.schedule
-
-                #self.schedule[newBlock].isFull = True
-
-                for i in range(item.data(1)):
-                    #self.schedule[item.data(0) + i].isFull = False
-                    self.schedule[newBlock + i].isFull = True
-                
-                item.setData(0, newBlock)
-                
-            except:
-                break
-
-
-class GraphicsView(QGraphicsView):
-    def __init__(self, parent=None, blockSize=24):
-        super(GraphicsView, self).__init__(parent)
-        #super().__init__(parent)
-        print("noo2")
-        
-class BlockSegment():
-    
-    def __init__(self, order=0, y=0, prev=None, next=None, blocks=[]):
-        self.order = order
-        self.blocks = blocks
-        self.y = y
-        self.prev = prev
-        self.next = next
-        self.isFull = False
-        self.isBreak = False
-
+)       
 
 class Window(QWidget):
 
@@ -184,10 +37,11 @@ class Window(QWidget):
     }
     firstEmptyBlock = 0
 
-    def __init__(self, saved=None):
+    def __init__(self, saved=None, baseDir=""):
         super().__init__()
 
         # Defining scene and adding basic layout elements to scene
+        self.baseDir = baseDir
         numHours = 8
         startHour = 7
         startMinute = 30
@@ -215,20 +69,11 @@ class Window(QWidget):
             textItem = self.scene.addText( textHour + ":" + textMinute + " " + AMPMTag)
             textItem.setPos(0, self.blockSize * i)
 
-            #self.schedule.append(Block(i, self.blockSize * i + (self.blockSize / 2)))
-            #self.scene.schedule.append(BlockSegment(i * 4, self.blockSize * i))
-
             timeBox = QGraphicsRectItem(0, 0, 80, self.blockSize)
             timeBox.setBrush(QColor(255, 0, 0, 0))
             timeBox.setPen(QPen(Qt.GlobalColor.black))
             timeBox.setPos(0, self.blockSize * i)
             self.scene.addItem(timeBox)
-            # for j in range(1,4):
-            #     blockLine = QGraphicsLineItem(80, (self.blockSize * i) + ((self.blockSize / 4) * j), 
-            #                                   260, (self.blockSize * i) + ((self.blockSize / 4) * j))
-            #     blockLine.setPen(QPen(Qt.GlobalColor.gray))
-            #     self.scene.addItem(blockLine)
-            #     self.scene.schedule.append(BlockSegment(i * 4 + j, (self.blockSize * i) + ((self.blockSize / 4) * j)))
             for j in range(4):
                 blockSegBox = QGraphicsRectItem(0, 0, 180, (self.blockSize / 4))
                 blockSegBox.setPos(80, (self.blockSize * i) + ((self.blockSize / 4) * j))
@@ -287,39 +132,9 @@ class Window(QWidget):
                 elif int(savedBlock) == 3:
                     skipCount += 6
 
-        # # Draw a rectangle item, setting the dimensions.
-        # rect = QGraphicsRectItem(0, 0, 200, 50)
-        # rect.setPos(50, 20)
-        # brush = QBrush(Qt.GlobalColor.red)
-        # rect.setBrush(brush)
-
-        # # Define the pen (line)
-        # pen = QPen(Qt.GlobalColor.cyan)
-        # pen.setWidth(10)
-        # rect.setPen(pen)
-
-        # ellipse = QGraphicsEllipseItem(0, 0, 100, 100)
-        # ellipse.setPos(75, 30)
-
-        # brush = QBrush(Qt.GlobalColor.blue)
-        # ellipse.setBrush(brush)
-
-        # pen = QPen(Qt.GlobalColor.green)
-        # pen.setWidth(5)
-        # ellipse.setPen(pen)
-
-        # # Add the items to the scene. Items are stacked in the order they are added.
-        # self.scene.addItem(ellipse)
-        # self.scene.addItem(rect)
-
-        # # Set all items as moveable and selectable.
-        # for item in self.scene.items():
-        #     item.setFlag(QGraphicsItem.GraphicsItemFlag.ItemIsMovable)
-        #     item.setFlag(QGraphicsItem.GraphicsItemFlag.ItemIsSelectable)
 
 
-
-        # Define our layout.
+        # Define our layout & add functionality buttons
         vbox = QVBoxLayout()
 
         insert = QPushButton("Insert")
@@ -328,11 +143,6 @@ class Window(QWidget):
 
         setBlock = QComboBox()
         setBlock.addItems(["Regular", "Laser", "Premium"])
-
-        # Sends the current index (position) of the selected item.
-        #blockType.currentIndexChanged.connect( self.index_changed )
-
-        # There is an alternate signal to send the text.
         setBlock.currentTextChanged.connect( self.text_changed )
         vbox.addWidget(setBlock)
 
@@ -348,26 +158,6 @@ class Window(QWidget):
         save.clicked.connect(self.save)
         vbox.addWidget(save)
 
-        # listItems = QPushButton("List")
-        # listItems.clicked.connect(self.listItems)
-        # vbox.addWidget(listItems)
-
-        # EXISTING CODE
-        # up = QPushButton("Up")
-        # up.clicked.connect(self.up)
-        # vbox.addWidget(up)
-
-        # down = QPushButton("Down")
-        # down.clicked.connect(self.down)
-        # vbox.addWidget(down)
-
-        # rotate = QSlider()
-        # rotate.setRange(0, 360)
-        # rotate.valueChanged.connect(self.rotate)
-        # vbox.addWidget(rotate)
-
-        #view = QGraphicsView(self.scene)
-        #self.view = GraphicsView(self.scene)
         self.view = QGraphicsView(self.scene)
         self.view.setRenderHint(QPainter.RenderHint.Antialiasing)
 
@@ -377,14 +167,10 @@ class Window(QWidget):
 
         self.setLayout(hbox)
     
-    def listItems(self):
-        for item in self.scene.items():
-        #for item in self.view.scene.items():
-            print("NEW ITEM")
-            print(item.x())
-            print(item.y())
             
     def delete(self):
+        """ Delete currently selected blocks """
+
         for item in self.scene.selectedItems():
             if item.data(0) is not None and item.data(1) is not None:
                 for cItem in item.collidingItems():
@@ -395,6 +181,8 @@ class Window(QWidget):
             self.scene.removeItem(item)
 
     def clear(self):
+        """ Clear all blocks in schedule """
+
         for item in self.scene.items():
             if item.data(2) is not None:
                 self.scene.removeItem(item)
@@ -407,8 +195,10 @@ class Window(QWidget):
                 break
 
     def save(self):
+        """ Save current schedule to SavedSchedule.txt (does not include break) """
+
         try:
-            with open(os.path.join(basedir, "SavedSchedule.txt"), "w") as scheduleFile:
+            with open(os.path.join(self.baseDir, "SavedSchedule.txt"), "w") as scheduleFile:
                 schedule = np.zeros((len(self.scene.schedule), 2))
                 scheduleStr = ''
                 for item in self.scene.items():
@@ -429,7 +219,7 @@ class Window(QWidget):
             print("Could not save schedule")
     
     def insertSaved(self, inputType = -1, skip = 0):
-        """" Insert a new schedule block """
+        """" Insert a new schedule block for saved schedule"""
         
         if inputType == 0:
             return
@@ -476,7 +266,6 @@ class Window(QWidget):
 
             # Define the pen (line)
             pen = QPen(Qt.GlobalColor.black)
-            # pen.setWidth(10)
             rect.setPen(pen)
             self.scene.addItem(rect)
             try:
@@ -485,7 +274,6 @@ class Window(QWidget):
                 
             except:
                 print("There was an issue")
-            #self.view.scene.addItem(rect)
             rect.setFlag(QGraphicsItem.GraphicsItemFlag.ItemIsMovable)
             rect.setFlag(QGraphicsItem.GraphicsItemFlag.ItemIsSelectable)
     
@@ -527,7 +315,6 @@ class Window(QWidget):
 
             # Define the pen (line)
             pen = QPen(Qt.GlobalColor.black)
-            # pen.setWidth(10)
             rect.setPen(pen)
             self.scene.addItem(rect)
             try:
@@ -536,22 +323,9 @@ class Window(QWidget):
                 
             except:
                 print("There was an issue")
-            #self.view.scene.addItem(rect)
             rect.setFlag(QGraphicsItem.GraphicsItemFlag.ItemIsMovable)
             rect.setFlag(QGraphicsItem.GraphicsItemFlag.ItemIsSelectable)
 
-    #def selectItem(self):
-
-    # def mousePressEvent(self, event):
-
-    #     if event.button() == Qt.LeftButton:
-    #         # handle left mouse button here
-    #     else:
-    #         # pass on other buttons to base class
-    #         QCheckBox.mousePressEvent(event)
-
-    # def mouseReleaseEvent(self, event):
-    #     print("Mouse Release Event")
         
 
     def index_changed(self, i): # i is an int
@@ -560,38 +334,3 @@ class Window(QWidget):
     def text_changed(self, s): # s is a str
         self.blockType = s
         print(self.blockType)
-
-    def up(self):
-        """ Iterate all selected items in the view, moving them forward. """
-        items = self.scene.selectedItems()
-        for item in items:
-            z = item.zValue()
-            item.setZValue(z + 1)
-
-    def down(self):
-        """ Iterate all selected items in the view, moving them backward. """
-        items = self.scene.selectedItems()
-        for item in items:
-            z = item.zValue()
-            item.setZValue(z - 1)
-
-    def rotate(self, value):
-        """ Rotate the object by the received number of degrees. """
-        items = self.scene.selectedItems()
-        for item in items:
-            item.setRotation(value)
-
-
-app = QApplication(sys.argv)
-
-try:
-    with open(os.path.join(basedir, "SavedSchedule.txt"), "r+") as scheduleFile:
-        savedSchedule = scheduleFile.read().splitlines()
-except:
-    print("Could not open file")
-    savedSchedule = ['0']
-
-w = Window(saved=savedSchedule)
-w.show()
-
-app.exec()
