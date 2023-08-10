@@ -1,5 +1,5 @@
 
-import sys
+import sys, os
 import numpy as np
 
 from typing import List
@@ -24,6 +24,8 @@ from PyQt6.QtWidgets import (
     QWidget,
 
 )
+
+basedir = os.path.dirname(__file__)
 
 class GraphicsScene(QGraphicsScene):
 
@@ -406,7 +408,7 @@ class Window(QWidget):
 
     def save(self):
         try:
-            with open("SavedSchedule.txt", "w") as scheduleFile:
+            with open(os.path.join(basedir, "SavedSchedule.txt"), "w") as scheduleFile:
                 schedule = np.zeros((len(self.scene.schedule), 2))
                 scheduleStr = ''
                 for item in self.scene.items():
@@ -583,7 +585,7 @@ class Window(QWidget):
 app = QApplication(sys.argv)
 
 try:
-    with open("SavedSchedule.txt", "r+") as scheduleFile:
+    with open(os.path.join(basedir, "SavedSchedule.txt"), "r+") as scheduleFile:
         savedSchedule = scheduleFile.read().splitlines()
 except:
     print("Could not open file")
