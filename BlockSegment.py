@@ -2,9 +2,11 @@
 
 class BlockSegment():
     
-    def __init__(self, order=0, y=0, prev=None, next=None, blocks=[]):
+    def __init__(self, order=0, y=0, beginString="Start", endString="End", prev=None, next=None, blocks=[]):
         self.order = order
         self.blocks = blocks
+        self.endString = endString
+        self.beginString = beginString
         self.y = y
         self.prev = prev
         self.next = next

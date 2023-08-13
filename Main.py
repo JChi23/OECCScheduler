@@ -11,7 +11,7 @@ if __name__ == '__main__':
     app = QApplication(sys.argv)
 
     try:
-        with open(os.path.join(basedir, "SavedSchedule.txt"), "r+") as scheduleFile:
+        with open(os.path.join(basedir, "resources", "SavedSchedule.txt"), "r+") as scheduleFile:
             savedSchedule = scheduleFile.read().splitlines()
     except:
         print("Could not open file")

@@ -9,6 +9,7 @@ class GraphicsScene(QGraphicsScene):
     schedule = []
     selectedOrder = 0
     oldSelected = []
+    blockSelected = False
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -19,6 +20,7 @@ class GraphicsScene(QGraphicsScene):
     def mousePressEvent(self, event):
         """ Add overloaded functionality to make selection apparent and set block fullness when a time block is selected """
 
+        self.blockSelected = False
         super().mousePressEvent(event)
         items = self.selectedItems()
         for item in self.oldSelected:
@@ -37,8 +39,32 @@ class GraphicsScene(QGraphicsScene):
             item.update()
 
             if item.data(1) is not None:
+                if not self.blockSelected:
+                    self.blockSelected = True
+                    try:
+                        self.parent().changeNameChange(True)
+                    except:
+                        print("could not enable parent button")
                 for i in range(item.data(1)):
                         self.schedule[item.data(0) + i].isFull = False
+        
+        if not self.blockSelected:
+            try:
+                self.parent().changeNameChange()
+            except:
+                print("could not disable parent button")
+
+    def changeName(self, name="Patient"):
+        """ Change the name of the selected block """
+        items = self.selectedItems()
+
+        for item in items:
+            if item.data(2) is not None:
+                subItems = item.childItems()
+                for subItem in subItems:
+                    if subItem.data(3) is not None:
+                        subItem.setPlainText(name)
+
 
 
     def mouseReleaseEvent(self, event):
@@ -77,6 +103,14 @@ class GraphicsScene(QGraphicsScene):
 
                 for i in range(item.data(1)):
                     self.schedule[newBlock + i].isFull = True
+
+                for subItem in item.childItems():
+                    if subItem.data(3) is not None and subItem.data(3) == 2:
+                        timeText = "Time"
+                        lastBlockIndex = newBlock + item.data(1) - 1
+                        timeText = self.schedule[newBlock].beginString + " - " + self.schedule[lastBlockIndex].endString
+                        subItem.setPlainText(timeText)
+            
                 
                 item.setData(0, newBlock)
                 
