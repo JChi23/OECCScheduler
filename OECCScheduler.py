@@ -5,6 +5,7 @@ import numpy as np
 
 from BlockSegment import BlockSegment
 from GraphicsScene import GraphicsScene
+from ScheduleColors import BlockColors
 
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QBrush, QPainter, QPen, QColor, QIcon, QFont
@@ -35,9 +36,9 @@ class Window(QWidget):
         "Premium" : 1.5,
     }
     blockColors = {
-        "Regular" : Qt.GlobalColor.red,
-        "Laser" : Qt.GlobalColor.cyan,
-        "Premium" : Qt.GlobalColor.green,
+        "Regular" : BlockColors.REGULAR.value,
+        "Laser" : BlockColors.LASER.value,
+        "Premium" : BlockColors.PREMIUM.value,
     }
     blockEndMinutes = {
         0 : { 0 : "03", 1 : "07", 2 : "11", 3 : "14",},
@@ -93,7 +94,7 @@ class Window(QWidget):
             for j in range(4):
                 blockSegBox = QGraphicsRectItem(0, 0, 180, (self.blockSize / 4))
                 blockSegBox.setPos(80, (self.blockSize * i) + ((self.blockSize / 4) * j))
-                blockSegBox.setBrush(QColor(255, 0, 0, 0))
+                blockSegBox.setBrush(QColor(0, 0, 0, 0))
                 blockSegBox.setPen(QPen(Qt.GlobalColor.gray))
                 blockSegBox.setData(0, i * 4 + j)   # Set 0 to be the id of block segment
                 blockSegBox.setData(1, 0)           # Set 1 to represent full-ness (0 empty, 1 occupied)
@@ -126,15 +127,33 @@ class Window(QWidget):
         breakBlockLength = 2
         breakStart = 4 * 19
         breakBlock = QGraphicsRectItem(0, 0, 100, self.blockSize * breakBlockLength)
-        breakBlock.setBrush(QBrush(Qt.GlobalColor.yellow))
+        breakBlock.setBrush(QBrush(BlockColors.BREAK.value))
         breakBlock.setPen(QPen(Qt.GlobalColor.black))
         breakBlock.setPos(80, self.blockSize * 19)
         breakBlock.setData(0, breakStart)                                     # id of first block segment that break occupies
-        breakBlock.setData(1, self.blockSize * breakBlockLength)     # number of segments that break occupies
+        breakBlock.setData(1, 4 * breakBlockLength)     # number of segments that break occupies
         breakText = QGraphicsTextItem("Break", breakBlock)
         breakText.setFont(QFont("Helvetica", 16))
+        timeRect = QGraphicsRectItem(100, 0, 40, self.blockSize * breakBlockLength, breakBlock)
+        timeRect.setBrush(QColor(255, 255, 255, 255))
+        timeRect.setPen(QPen(Qt.GlobalColor.black))
+
+        timeText = "Time"
+        try:
+            lastBlockIndex = breakStart + int(4 * breakBlockLength) - 1
+            timeText = self.scene.schedule[breakStart].beginString + " - " + self.scene.schedule[lastBlockIndex].endString
+        except:
+            print("There was an issue populating break time")
+
+        timeRectText = QGraphicsTextItem(timeText, breakBlock)
+        timeRectText.setX(100)
+        timeRectText.setFont(QFont("Helvetica", 10))
+        timeRectText.setTextWidth(50)
+        timeRectText.setData(3, 2)              # identifier for graphics to tell that this is block time text
         
         self.scene.addItem(breakBlock)
+        breakBlock.setFlag(QGraphicsItem.GraphicsItemFlag.ItemIsMovable)
+        breakBlock.setFlag(QGraphicsItem.GraphicsItemFlag.ItemIsSelectable)
         
         try:
             for i in range(4 * breakBlockLength):
@@ -144,26 +163,37 @@ class Window(QWidget):
             print("There was an issue")
 
         skipCount = 0
-        for savedBlock in saved:
-            if int(savedBlock) == 0:
-                skipCount += 1
-            else:
-                self.insertSaved(int(savedBlock), skipCount)
-                if int(savedBlock) == 1:
-                    skipCount += 4
-                elif int(savedBlock) == 2:
-                    skipCount += 5
-                elif int(savedBlock) == 3:
-                    skipCount += 6
+
+        try:
+            for savedBlock in saved:
+                firstChar = savedBlock[0]
+                otherChars = savedBlock[1:]
+                if len(otherChars) < 1:
+                    otherChars = "Patient"
+                if int(firstChar) == 0:
+                    skipCount += 1
+                else:
+                    self.insertSaved(int(firstChar), skipCount, otherChars)
+                    if int(firstChar) == 1:
+                        skipCount += 4
+                    elif int(firstChar) == 2:
+                        skipCount += 5
+                    elif int(firstChar) == 3:
+                        skipCount += 6
+                
+
+        except:
+            print("Could not insert saved procedures")
+
 
 
 
         # Define our layout & add functionality buttons
         vbox = QVBoxLayout()
 
-        patientName = QLineEdit("Patient Name")
-        patientName.textChanged.connect(self.name_changed)
-        vbox.addWidget(patientName)
+        self.patientName = QLineEdit("Patient Name")
+        self.patientName.textChanged.connect(self.name_changed)
+        vbox.addWidget(self.patientName)
 
         self.changeName = QPushButton("Change Name")
         self.changeName.setEnabled(False)
@@ -206,13 +236,14 @@ class Window(QWidget):
         """ Delete currently selected blocks """
 
         for item in self.scene.selectedItems():
-            if item.data(0) is not None and item.data(1) is not None:
-                for cItem in item.collidingItems():
-                    if (cItem.data(0) is not None and
-                        item.data(0) == cItem.data(0)):
-                        for i in range(item.data(1)):
-                            self.scene.schedule[item.data(0) + i].isFull = False
-            self.scene.removeItem(item)
+            if item.data(2) is not None:
+                if item.data(0) is not None and item.data(1) is not None:
+                    for cItem in item.collidingItems():
+                        if (cItem.data(0) is not None and
+                            item.data(0) == cItem.data(0)):
+                            for i in range(item.data(1)):
+                                self.scene.schedule[item.data(0) + i].isFull = False
+                self.scene.removeItem(item)
 
     def clear(self):
         """ Clear all blocks in schedule """
@@ -252,7 +283,7 @@ class Window(QWidget):
         except:
             print("Could not save schedule")
     
-    def insertSaved(self, inputType = -1, skip = 0):
+    def insertSaved(self, inputType = -1, skip = 0, name="Patient"):
         """" Insert a new schedule block for saved schedule"""
         
         if inputType == 0:
@@ -298,7 +329,7 @@ class Window(QWidget):
             rect.setData(1, int(self.blockTimes[blockType] * 4))     # number of segments that rect occupies
             rect.setData(2, int(self.blockTimes[blockType] * 4) - 3)   # identifier for graphics to tell that this is a rect
             
-            rectText = QGraphicsTextItem("Patient", rect)
+            rectText = QGraphicsTextItem(name, rect)
             rectText.setData(3, 1)              # identifier for graphics to tell that this is block text
 
             timeRect = QGraphicsRectItem(100, 0, 40, self.blockSize * self.blockTimes[blockType], rect)
@@ -420,6 +451,10 @@ class Window(QWidget):
     def changePatientName(self):
         """ Change the name of the selected block """
         self.scene.changeName(self.blockName)
+
+    def changeInputPatientName(self, name="Patient"):
+        """ Change the name of the text input widget """
+        self.patientName.setText(name)
 
     def changeNameChange(self, enable=False):
         """ Change the change name button on widget """

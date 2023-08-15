@@ -32,7 +32,7 @@ class GraphicsScene(QGraphicsScene):
                 print("there was an error with updating opacity")
         
         self.oldSelected = items
-
+        
         for item in items:
 
             item.setOpacity(0.5)
@@ -47,6 +47,12 @@ class GraphicsScene(QGraphicsScene):
                         print("could not enable parent button")
                 for i in range(item.data(1)):
                         self.schedule[item.data(0) + i].isFull = False
+            
+            if item.data(2) is not None:
+                subItems = item.childItems()
+                for subItem in subItems:
+                    if subItem.data(3) is not None and subItem.data(3) == 1:
+                        self.parent().changeInputPatientName(subItem.toPlainText())
         
         if not self.blockSelected:
             try:
@@ -62,7 +68,7 @@ class GraphicsScene(QGraphicsScene):
             if item.data(2) is not None:
                 subItems = item.childItems()
                 for subItem in subItems:
-                    if subItem.data(3) is not None:
+                    if subItem.data(3) is not None and subItem.data(3) == 1:
                         subItem.setPlainText(name)
 
 
@@ -73,7 +79,7 @@ class GraphicsScene(QGraphicsScene):
         items = self.selectedItems()
 
         super().mouseReleaseEvent(event)
-
+        
         for item in items:
 
             newBlock = 0
@@ -83,7 +89,7 @@ class GraphicsScene(QGraphicsScene):
             for block in self.schedule: # can be optimized to only check for colliding things
                 try:
                     if (block.isFull != True and
-                        abs(block.y - item.y()) < abs(newY - item.y())):
+                        abs(block.y - item.y()) <= abs(newY - item.y())):
                         isColliding = False
 
                         for i in range(1, item.data(1)):
@@ -96,11 +102,11 @@ class GraphicsScene(QGraphicsScene):
                             newBlock = block.order
                             
                 except:
+                    print("there was an issue with block collision")
                     break
             
             item.setPos(80, newY)
             try:
-
                 for i in range(item.data(1)):
                     self.schedule[newBlock + i].isFull = True
 
@@ -115,4 +121,5 @@ class GraphicsScene(QGraphicsScene):
                 item.setData(0, newBlock)
                 
             except:
+                print("there was an issue with updating times")
                 break
