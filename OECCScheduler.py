@@ -265,6 +265,7 @@ class Window(QWidget):
         try:
             with open(os.path.join(self.baseDir, "resources", "SavedSchedule.txt"), "w") as scheduleFile:
                 schedule = np.zeros((len(self.scene.schedule), 2))
+                scheduleNames = [""] * len(self.scene.schedule)
                 scheduleStr = ''
                 for item in self.scene.items():
                     if item.data(2) is not None:
@@ -272,11 +273,16 @@ class Window(QWidget):
                         for i in range(item.data(1)):
                             schedule[item.data(0) + i, 1] = 1
 
-                for segment in schedule:
-                    if segment[0] == 0 and segment[1] != 1:
+                        subItems = item.childItems()
+                        for subItem in subItems:
+                            if subItem.data(3) is not None and subItem.data(3) == 1:
+                                scheduleNames[item.data(0)] = subItem.toPlainText()
+
+                for i in range(len(schedule)):
+                    if schedule[i][0] == 0 and schedule[i][1] != 1:
                         scheduleStr += "0\n"
-                    elif segment[0] != 0:
-                        scheduleStr += (str(int(segment[0])) + "\n")
+                    elif schedule[i][0] != 0:
+                        scheduleStr += (str(int(schedule[i][0])) + scheduleNames[i] + "\n")
 
                 scheduleFile.write(scheduleStr)
                 print("Saved schedule")
