@@ -82,10 +82,15 @@ class GraphicsScene(QGraphicsScene):
         
         for item in items:
 
+            # Check for collisions and find earliest block to put in procedure
+
             newBlock = 0
+            newY = 0
             if item.data(0) is not None:
                 newBlock = item.data(0)
-            newY = 0
+                newY = self.schedule[newBlock].y
+            isMoved = False
+        
             for block in self.schedule: # can be optimized to only check for colliding things
                 try:
                     if (block.isFull != True and
@@ -98,6 +103,7 @@ class GraphicsScene(QGraphicsScene):
                                 break
                         
                         if not isColliding:
+                            isMoved = True
                             newY = block.y
                             newBlock = block.order
                             
@@ -105,7 +111,10 @@ class GraphicsScene(QGraphicsScene):
                     print("there was an issue with block collision")
                     break
             
+            # Update procedure time and location with new block
+            
             item.setPos(80, newY)
+
             try:
                 for i in range(item.data(1)):
                     self.schedule[newBlock + i].isFull = True

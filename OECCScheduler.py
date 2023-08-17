@@ -1,4 +1,5 @@
 """ Represents the entire Scheduler window including the button functionality and graphics scene """
+""" Data keys used in graphics objects: 0, 1, 2, 3"""
 
 import os
 import numpy as np
