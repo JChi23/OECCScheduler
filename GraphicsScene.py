@@ -84,8 +84,8 @@ class GraphicsScene(QGraphicsScene):
 
     def changeName(self, name="Patient"):
         """ Change the name of the selected block """
-        items = self.selectedItems()
 
+        items = self.selectedItems()
         for item in items:
             if item.data(2) is not None:
                 subItems = item.childItems()
@@ -94,6 +94,8 @@ class GraphicsScene(QGraphicsScene):
                         subItem.setPlainText(name)
 
     def mouseMoveEvent(self, event: QGraphicsSceneMouseEvent):
+        """ Add overloaded functionality to allow for single click selection + deselection """
+
         super().mouseMoveEvent(event)
         if self.allowDeselect and self.count == 15:
             self.allowDeselect = False
@@ -105,46 +107,44 @@ class GraphicsScene(QGraphicsScene):
         """ Add overloaded functionality to correctly snap and place time blocks when mouse released """
 
         items = self.selectedItems()
-        #print("LENGTH2 ", len(items))
         super().mouseReleaseEvent(event)
+        print("LENGTH, ", len(items))
+
+        try:
+            items.sort(key=lambda e: e.data(0))
+        except:
+            print("Unable to get ordering from items")
         
         for item in items:
 
             # Check for collisions and find earliest block to put in procedure
 
             newBlock = 0
-            #print("BENCH")
+            isOldFull = False
+
             if item.data(0) is not None:
                 newBlock = item.data(0)
-                #newY = self.schedule[newBlock].y
+            print(newBlock)
+
+            if self.doesCollide(item, newBlock):  # If old spot is occupied, need to find a new default spot
+                isOldFull = True
             
             if not item.isSelected():
-                #print("BENCH2")
                 item.setSelected(True)
         
             for block in self.schedule: # can be optimized to only check for colliding things
                 try:
-                    if (block.isFull == False and
-                        abs(block.y - item.y()) <= abs(self.schedule[newBlock].y - item.y())):
+                    if ((block.isFull == False and
+                        abs(block.y - item.y()) <= abs(self.schedule[newBlock].y - item.y())) or
+                        (block.isFull == False and isOldFull)):
                         if not self.doesCollide(item, block.order):
-                            #newY = block.y
                             newBlock = block.order
-
-                        # isColliding = False
-
-                        # for i in range(1, item.data(1)):
-                        #     if self.schedule[block.order + i].isFull == True:
-                        #         isColliding = True
-                        #         break
-                        
-                        # if not isColliding:
-                        #     #newY = block.y
-                        #     newBlock = block.order
-                            
+                            if isOldFull:
+                                isOldFull = False
                 except:
                     print("there was an issue with block collision")
                     break
-            
+            print("MOVING TO ", newBlock)
             # Update procedure time and location with new block
             self.move(item, item.data(0), newBlock)
 
@@ -183,8 +183,8 @@ class GraphicsScene(QGraphicsScene):
         try:
             movedItem.setPos(80, self.schedule[newBlock].y)
             
-            for i in range(movedItem.data(1)):
-                self.schedule[oldBlock + i].isFull = False
+            # for i in range(movedItem.data(1)):
+            #     self.schedule[oldBlock + i].isFull = False
             for i in range(movedItem.data(1)):
                 self.schedule[newBlock + i].isFull = True
 
