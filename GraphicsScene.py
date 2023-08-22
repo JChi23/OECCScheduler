@@ -2,7 +2,9 @@
 
 from PyQt6.QtWidgets import (
     QGraphicsScene,
+    QGraphicsSceneMouseEvent,
 )
+from PyQt6.QtGui import QTransform
 
 class GraphicsScene(QGraphicsScene):
 
@@ -10,6 +12,9 @@ class GraphicsScene(QGraphicsScene):
     selectedOrder = 0
     oldSelected = []
     blockSelected = False
+    allowDeselect = False
+    count = 0
+    pressBegan = False
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -20,10 +25,27 @@ class GraphicsScene(QGraphicsScene):
     def mousePressEvent(self, event):
         """ Add overloaded functionality to make selection apparent and set block fullness when a time block is selected """
 
+        self.allowDeselect = False
         self.blockSelected = False
+        self.pressBegan = True
+        self.count = 0
+
+        multiItemGuard = self.itemAt(event.scenePos().x(), event.scenePos().y(), QTransform())
+        multiItemParent = multiItemGuard
+        while(multiItemParent.parentItem()):
+            multiItemParent = multiItemParent.parentItem()
+        if multiItemParent and multiItemParent.isSelected():
+            self.allowDeselect = True
+
+        oldItems = self.selectedItems()
+
         super().mousePressEvent(event)
+
+        if multiItemParent:
+            multiItemParent.setSelected(True)
+
         items = self.selectedItems()
-        for item in self.oldSelected:
+        for item in oldItems:   # Change opacity of old selected items to opaque
             try:
                 if item not in items:
                     item.setOpacity(1)
@@ -31,9 +53,7 @@ class GraphicsScene(QGraphicsScene):
             except:
                 print("there was an error with updating opacity")
         
-        self.oldSelected = items
-        
-        for item in items:
+        for item in items:  # Change patient names and block fullness
 
             item.setOpacity(0.5)
             item.update()
@@ -60,6 +80,8 @@ class GraphicsScene(QGraphicsScene):
             except:
                 print("could not disable parent button")
 
+        self.parent().darkenFull()
+
     def changeName(self, name="Patient"):
         """ Change the name of the selected block """
         items = self.selectedItems()
@@ -71,13 +93,19 @@ class GraphicsScene(QGraphicsScene):
                     if subItem.data(3) is not None and subItem.data(3) == 1:
                         subItem.setPlainText(name)
 
-
+    def mouseMoveEvent(self, event: QGraphicsSceneMouseEvent):
+        super().mouseMoveEvent(event)
+        if self.allowDeselect and self.count == 15:
+            self.allowDeselect = False
+            self.count = 0
+        elif self.pressBegan:
+            self.count += 1
 
     def mouseReleaseEvent(self, event):
         """ Add overloaded functionality to correctly snap and place time blocks when mouse released """
 
         items = self.selectedItems()
-
+        #print("LENGTH2 ", len(items))
         super().mouseReleaseEvent(event)
         
         for item in items:
@@ -85,50 +113,91 @@ class GraphicsScene(QGraphicsScene):
             # Check for collisions and find earliest block to put in procedure
 
             newBlock = 0
-            newY = 0
+            #print("BENCH")
             if item.data(0) is not None:
                 newBlock = item.data(0)
-                newY = self.schedule[newBlock].y
-            isMoved = False
+                #newY = self.schedule[newBlock].y
+            
+            if not item.isSelected():
+                #print("BENCH2")
+                item.setSelected(True)
         
             for block in self.schedule: # can be optimized to only check for colliding things
                 try:
-                    if (block.isFull != True and
-                        abs(block.y - item.y()) <= abs(newY - item.y())):
-                        isColliding = False
-
-                        for i in range(1, item.data(1)):
-                            if self.schedule[block.order + i].isFull == True:
-                                isColliding = True
-                                break
-                        
-                        if not isColliding:
-                            isMoved = True
-                            newY = block.y
+                    if (block.isFull == False and
+                        abs(block.y - item.y()) <= abs(self.schedule[newBlock].y - item.y())):
+                        if not self.doesCollide(item, block.order):
+                            #newY = block.y
                             newBlock = block.order
+
+                        # isColliding = False
+
+                        # for i in range(1, item.data(1)):
+                        #     if self.schedule[block.order + i].isFull == True:
+                        #         isColliding = True
+                        #         break
+                        
+                        # if not isColliding:
+                        #     #newY = block.y
+                        #     newBlock = block.order
                             
                 except:
                     print("there was an issue with block collision")
                     break
             
             # Update procedure time and location with new block
-            
-            item.setPos(80, newY)
+            self.move(item, item.data(0), newBlock)
 
-            try:
-                for i in range(item.data(1)):
-                    self.schedule[newBlock + i].isFull = True
+        multiItemGuard = self.itemAt(event.scenePos().x(), event.scenePos().y(), QTransform())
+        if multiItemGuard and self.allowDeselect:
+            tempItem = multiItemGuard
+            while(tempItem.parentItem()):
+                tempItem = tempItem.parentItem()
+            tempItem.setSelected(False)
+            tempItem.setOpacity(1)
+            tempItem.update()
+            self.allowDeselect = False
+        
+        self.pressBegan = False
+        self.parent().darkenFull()
 
-                for subItem in item.childItems():
-                    if subItem.data(3) is not None and subItem.data(3) == 2:
-                        timeText = "Time"
-                        lastBlockIndex = newBlock + item.data(1) - 1
-                        timeText = self.schedule[newBlock].beginString + " - " + self.schedule[lastBlockIndex].endString
-                        subItem.setPlainText(timeText)
+    def doesCollide(self, item, block = 0) -> bool:
+        """ Check if item at block in schedule would have any collisions """
+
+        try:
+            isColliding = False
             
-                
-                item.setData(0, newBlock)
-                
-            except:
-                print("there was an issue with updating times")
-                break
+            for i in range(item.data(1)):
+                if self.schedule[block + i].isFull == True:
+                    isColliding = True
+                    break
+            
+            return isColliding
+        except:
+            print("Could not check for collisions")
+            return True
+
+    def move(self, movedItem, oldBlock = 0, newBlock = 0):
+        """ Move movedItem from oldBlock in schedule to newBlock """
+        
+        try:
+            movedItem.setPos(80, self.schedule[newBlock].y)
+            
+            for i in range(movedItem.data(1)):
+                self.schedule[oldBlock + i].isFull = False
+            for i in range(movedItem.data(1)):
+                self.schedule[newBlock + i].isFull = True
+
+            if oldBlock == newBlock:
+                return
+
+            for subItem in movedItem.childItems():
+                if subItem.data(3) is not None and subItem.data(3) == 2:
+                    timeText = "Time"
+                    lastBlockIndex = newBlock + movedItem.data(1) - 1
+                    timeText = self.schedule[newBlock].beginString + " - " + self.schedule[lastBlockIndex].endString
+                    subItem.setPlainText(timeText)
+
+            movedItem.setData(0, newBlock)
+        except:
+            print("Could not move item")

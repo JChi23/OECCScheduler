@@ -1,5 +1,10 @@
 """ Represents the entire Scheduler window including the button functionality and graphics scene """
-""" Data keys used in graphics objects: 0, 1, 2, 3"""
+""" Data keys used in graphics objects: 
+        0 = block id placement, 
+        1 = (procedure) length of block, 
+        2 = block procedure identifier, 
+        3 = text object identifier, 
+        4 = block segment identifier"""
 
 import os
 import numpy as np
@@ -13,6 +18,7 @@ from PyQt6.QtGui import QBrush, QPainter, QPen, QColor, QIcon, QFont
 from PyQt6.QtWidgets import (
     QComboBox,
     QGraphicsItemGroup,
+    QDoubleSpinBox,
     QGraphicsItem,
     QGraphicsRectItem,
     QGraphicsTextItem,
@@ -54,6 +60,7 @@ class Window(QWidget):
         45 : { 0 : "45", 1 : "49", 2 : "53", 3 : "57",},
     }
     firstEmptyBlock = 0
+    customBlockLength = 0.00
 
     def __init__(self, saved=None, baseDir=""):
         super().__init__()
@@ -98,7 +105,8 @@ class Window(QWidget):
                 blockSegBox.setBrush(QColor(0, 0, 0, 0))
                 blockSegBox.setPen(QPen(Qt.GlobalColor.gray))
                 blockSegBox.setData(0, i * 4 + j)   # Set 0 to be the id of block segment
-                blockSegBox.setData(1, 0)           # Set 1 to represent full-ness (0 empty, 1 occupied)
+                # blockSegBox.setData(1, 0)           # Set 1 to represent full-ness (0 empty, 1 occupied)
+                blockSegBox.setData(4, 0)           # Set 4 to be identifier for a block segment
                 # blockSegBox.setData(20, textHour)   # Set 20 to represent the hour of the block
                 # blockSegBox.setData(21, self.blockMinutes[startMinute][j])  # Set 21 to represent the minutes of the block
                 self.scene.addItem(blockSegBox)
@@ -210,6 +218,10 @@ class Window(QWidget):
         setBlock.currentTextChanged.connect(self.text_changed)
         vbox.addWidget(setBlock)
 
+        self.customLength = QDoubleSpinBox()
+        self.customLength.valueChanged.connect(self.changeCustomLength)
+        vbox.addWidget(self.customLength)
+
         delete = QPushButton("Delete")
         delete.setIcon(QIcon(os.path.join(self.baseDir, "icons", "lightning.png")))
         delete.clicked.connect(self.delete)
@@ -231,6 +243,8 @@ class Window(QWidget):
         hbox.addWidget(self.view)
 
         self.setLayout(hbox)
+
+        self.darkenFull()
     
             
     def delete(self):
@@ -289,6 +303,19 @@ class Window(QWidget):
                 print("Saved schedule")
         except:
             print("Could not save schedule")
+
+    def darkenFull(self):
+        """ Utility function to visualize which segments are currently full """
+
+        for item in self.scene.items():
+            if item.data(4) is not None:
+                if self.scene.schedule[item.data(0)].isFull == True:
+                    item.setBrush(QColor(0, 0, 0, 125))
+                    item.update()
+                else: 
+                    item.setBrush(QColor(0, 0, 0, 0))
+                    item.update()
+
     
     def insertSaved(self, inputType = -1, skip = 0, name="Patient"):
         """" Insert a new schedule block for saved schedule"""
@@ -450,6 +477,10 @@ class Window(QWidget):
     def text_changed(self, s): # s is a str
         """ Change the stored procedure type when combobox is updated """
         self.blockType = s
+    
+    def changeCustomLength(self, i):
+        print("YUH", i)
+        self.customBlockLength = i
 
     def name_changed(self, s):
         """ Change the stored patient name when the text box is updated """
