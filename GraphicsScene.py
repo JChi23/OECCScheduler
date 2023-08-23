@@ -97,7 +97,7 @@ class GraphicsScene(QGraphicsScene):
         """ Add overloaded functionality to allow for single click selection + deselection """
 
         super().mouseMoveEvent(event)
-        if self.allowDeselect and self.count == 15:
+        if self.allowDeselect and self.count >= 10:
             self.allowDeselect = False
             self.count = 0
         elif self.pressBegan:
@@ -144,7 +144,7 @@ class GraphicsScene(QGraphicsScene):
                 except:
                     print("there was an issue with block collision")
                     break
-            print("MOVING TO ", newBlock)
+     
             # Update procedure time and location with new block
             self.move(item, item.data(0), newBlock)
 

@@ -8,6 +8,7 @@
 
 import os
 import numpy as np
+from datetime import date
 
 from BlockSegment import BlockSegment
 from GraphicsScene import GraphicsScene
@@ -37,15 +38,19 @@ class Window(QWidget):
     blockSize = 24
     blockType = "Regular"
     blockName = "Patient"
+    blockTimeCustom = 1
+    customBlockLength = 1.00
     blockTimes = {
         "Regular" : 1,
         "Laser" : 1.25,
         "Premium" : 1.5,
+        "Custom" :  1,
     }
     blockColors = {
         "Regular" : BlockColors.REGULAR.value,
         "Laser" : BlockColors.LASER.value,
         "Premium" : BlockColors.PREMIUM.value,
+        "Custom" : BlockColors.CUSTOM.value,
     }
     blockEndMinutes = {
         0 : { 0 : "03", 1 : "07", 2 : "11", 3 : "14",},
@@ -60,14 +65,13 @@ class Window(QWidget):
         45 : { 0 : "45", 1 : "49", 2 : "53", 3 : "57",},
     }
     firstEmptyBlock = 0
-    customBlockLength = 0.00
 
     def __init__(self, saved=None, baseDir=""):
         super().__init__()
 
         # Defining scene and adding basic layout elements to scene
         self.baseDir = baseDir
-        numHours = 8
+        numHours = 10
         startHour = 7
         startMinute = 30
         AMPMTag = "AM"
@@ -75,8 +79,10 @@ class Window(QWidget):
 
             # Defining a scene rect of 400x200, with it's origin at 0,0.
         self.setWindowTitle("Scheduler")
-        self.scene = GraphicsScene(0, 0, 260, self.blockSize * numBlocks, self)
+        self.scene = GraphicsScene(0, -24, 260, self.blockSize * numBlocks + 24, self)
         
+        dateItem = self.scene.addText("Today's date: " + str(date.today()))
+        dateItem.setPos(15, -24)
 
 
             # Add time slots & corresponding boxes to graphics scene
@@ -214,11 +220,12 @@ class Window(QWidget):
         vbox.addWidget(insert)
 
         setBlock = QComboBox()
-        setBlock.addItems(["Regular", "Laser", "Premium"])
+        setBlock.addItems(["Regular", "Laser", "Premium", "Custom"])
         setBlock.currentTextChanged.connect(self.text_changed)
         vbox.addWidget(setBlock)
 
         self.customLength = QDoubleSpinBox()
+        self.customLength.setMinimum(0.25)
         self.customLength.valueChanged.connect(self.changeCustomLength)
         vbox.addWidget(self.customLength)
 
@@ -230,6 +237,10 @@ class Window(QWidget):
         clear = QPushButton("Clear")
         clear.clicked.connect(self.clear)
         vbox.addWidget(clear)
+
+        reset = QPushButton("Reset")
+        reset.clicked.connect(self.darkenFull)
+        vbox.addWidget(reset)
 
         save = QPushButton("Save")
         save.clicked.connect(self.save)
@@ -426,6 +437,7 @@ class Window(QWidget):
         if firstEmpty != -1:
 
             # Draw a rectangle item, setting the dimensions and location corresponding to empty block.
+            print(self.blockTimes[blockType])
             rect = QGraphicsRectItem(0, 0, 100, self.blockSize * self.blockTimes[blockType])
             rect.setBrush(QBrush(self.blockColors[blockType]))
             rect.setPos(80, firstY)
@@ -469,7 +481,7 @@ class Window(QWidget):
             rect.setFlag(QGraphicsItem.GraphicsItemFlag.ItemIsMovable)
             rect.setFlag(QGraphicsItem.GraphicsItemFlag.ItemIsSelectable)
 
-        
+    
 
     def index_changed(self, i): # i is an int
         print(i)
@@ -480,6 +492,7 @@ class Window(QWidget):
     
     def changeCustomLength(self, i):
         print("YUH", i)
+        self.blockTimes["Custom"] = i
         self.customBlockLength = i
 
     def name_changed(self, s):

@@ -19,4 +19,4 @@ v. 1.0
 Known issues:
 - There is currently an issue using PyInstaller with PyQt6 that causes a segmentation fault in the bundled app after packaging on MacOS Ventura
     - Remedied by using Pyinstaller 4.8 & PyQt6 6.3.0 on MacOS Catalina
-- Issue with PyQt's multi-select that does not detect multiple items on first click
+- Issue with multi movement up bugging out and not remapping correctly
