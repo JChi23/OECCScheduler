@@ -8,6 +8,7 @@
 
 import os
 import numpy as np
+import openpyxl as op
 from datetime import date
 
 from BlockSegment import BlockSegment
@@ -18,6 +19,7 @@ from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QBrush, QPainter, QPen, QColor, QIcon, QFont
 from PyQt6.QtWidgets import (
     QComboBox,
+    QFileDialog,
     QGraphicsItemGroup,
     QDoubleSpinBox,
     QGraphicsItem,
@@ -230,13 +232,17 @@ class Window(QWidget):
         vbox.addWidget(self.customLength)
 
         delete = QPushButton("Delete")
-        delete.setIcon(QIcon(os.path.join(self.baseDir, "icons", "lightning.png")))
+        #delete.setIcon(QIcon(os.path.join(self.baseDir, "icons", "lightning.png")))
         delete.clicked.connect(self.delete)
         vbox.addWidget(delete)
 
         clear = QPushButton("Clear")
         clear.clicked.connect(self.clear)
         vbox.addWidget(clear)
+
+        openFile = QPushButton("Open")
+        openFile.clicked.connect(self.openFile)
+        vbox.addWidget(openFile)
 
         reset = QPushButton("Reset")
         reset.clicked.connect(self.darkenFull)
@@ -284,6 +290,29 @@ class Window(QWidget):
                     block.isFull = False
             except:
                 break
+
+    def openFile(self):
+        fname = QFileDialog.getOpenFileName(self, 'Open file', self.baseDir)
+        if fname[0]:
+            print(fname[0])
+
+            # Define variable to load the dataframe
+            dataframe = op.load_workbook(fname[0], data_only=True)
+            
+            # Define variable to read sheet
+            dataframe1 = dataframe.active
+            
+            # Iterate the loop to read the cell values
+            for row in range(0, dataframe1.max_row):
+                for col in dataframe1.iter_cols(1, dataframe1.max_column):
+                    print(col[row].value)
+
+            # f = open(fname[0], 'r')
+
+            # with f:
+
+            #     data = f.read()
+            #     print(data)
 
     def save(self):
         """ Save current schedule to SavedSchedule.txt (does not include break) """
