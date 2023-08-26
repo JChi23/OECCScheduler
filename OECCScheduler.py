@@ -148,7 +148,8 @@ class Window(QWidget):
         breakBlock.setPen(QPen(Qt.GlobalColor.black))
         breakBlock.setPos(80, self.blockSize * 19)
         breakBlock.setData(0, breakStart)                                     # id of first block segment that break occupies
-        breakBlock.setData(1, 4 * breakBlockLength)     # number of segments that break occupies
+        breakBlock.setData(1, 4 * breakBlockLength)                         # number of segments that break occupies
+        breakBlock.setData(2, 0)                                            # identifier that this is a movable block
         breakText = QGraphicsTextItem("Break", breakBlock)
         breakText.setFont(QFont("Helvetica", 16))
         timeRect = QGraphicsRectItem(100, 0, 40, self.blockSize * breakBlockLength, breakBlock)
@@ -286,8 +287,9 @@ class Window(QWidget):
         
         for block in self.scene.schedule:
             try:
-                if block.isBreak != True:
-                    block.isFull = False
+                # if block.isBreak != True:
+                #     block.isFull = False
+                block.isFull = False
             except:
                 break
 
@@ -295,17 +297,59 @@ class Window(QWidget):
         fname = QFileDialog.getOpenFileName(self, 'Open file', self.baseDir)
         if fname[0]:
             print(fname[0])
+            self.clear()
 
             # Define variable to load the dataframe
             dataframe = op.load_workbook(fname[0], data_only=True)
             
             # Define variable to read sheet
             dataframe1 = dataframe.active
+
+            softMaxCol = min(12, dataframe1.max_column)
+            softMaxRow = min(50, dataframe1.max_row)
             
+            print(dataframe1.max_row, dataframe1.max_column)
             # Iterate the loop to read the cell values
-            for row in range(0, dataframe1.max_row):
-                for col in dataframe1.iter_cols(1, dataframe1.max_column):
-                    print(col[row].value)
+            colTime = 0
+            colFirstName = 2
+            colLastName = 3
+            colIOL = 5
+            colProcedure = 8
+            rowFirst = 2
+            #TODO: Add more robustness for detecting name & procedure
+            #for row in dataframe1.iter_rows(1,softMaxRow): 
+            try:
+
+                for row in dataframe1.iter_rows(rowFirst, softMaxRow):
+                    if row[colTime].value == "CANCELLED":
+                        break
+
+                    if row[colIOL].value == "Surgeon Break":
+                        print('temp')
+                        #insert a break block
+                    else:
+                        name = row[colFirstName].value[0] + ". " + row[colLastName].value
+                        procedure = row[colProcedure].value
+                        #check for block type and add it
+                        print(name)
+                        if "ORA" in procedure:
+                            print("yuh")
+                        
+
+
+
+
+
+                
+            except:
+                print("Could not read schedule")
+
+
+
+            # for row in range(0, softMaxRow):
+            #     for col in dataframe1.iter_cols(1, softMaxCol):
+            #         if col[row].value is not None:
+            #             print(col[row].value)
 
             # f = open(fname[0], 'r')
 

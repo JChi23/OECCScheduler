@@ -1,0 +1,10 @@
+from enum import Enum  
+
+class Procedures(Enum):
+    LASIK = "Laser"
+    ORA = "Premium"
+    PHACO = "Regular"
+    GONIOTOMY = "Laser"
+    GONIOSYNECHIALYSIS = "Laser"
+    XEN_GEL_STENT = "Custom"
+    FEMTO = "Laser"

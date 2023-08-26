@@ -5,5 +5,5 @@ class BlockColors(Enum):
     REGULAR = QColor(69, 166, 171)
     LASER = QColor(198, 120, 117)
     PREMIUM = QColor(221, 152, 41)
-    CUSTOM = QColor(125, 125, 125)
+    CUSTOM = QColor(125, 200, 125)
     BREAK = QColor(145, 146, 97)

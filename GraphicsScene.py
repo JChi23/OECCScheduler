@@ -1,13 +1,19 @@
 """ Represents custom scene that contains the schedule and inherits from QGraphicsScene """
 
+#from PyQt6 import QtGui
+from PyQt6 import QtGui
+from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import (
     QGraphicsScene,
     QGraphicsSceneMouseEvent,
 )
-from PyQt6.QtGui import QTransform
+from PyQt6.QtGui import (
+    QTransform,
+    QKeyEvent,
+)
 
 class GraphicsScene(QGraphicsScene):
-
+    
     schedule = []
     selectedOrder = 0
     oldSelected = []
@@ -15,12 +21,24 @@ class GraphicsScene(QGraphicsScene):
     allowDeselect = False
     count = 0
     pressBegan = False
+    allowMultiSelect = False
 
     def __init__(self, parent=None):
         super().__init__(parent)
     
     def __init__(self, x, y, width, height, parent=None):
         super().__init__(x, y, width, height, parent)
+        print(Qt.Key.Key_Shift.value)
+
+    def keyPressEvent(self, event: QKeyEvent) -> None:
+        super().keyPressEvent(event)
+        if event.key() == Qt.Key.Key_Shift.value:
+            self.allowMultiSelect = True
+
+    def keyReleaseEvent(self, event: QKeyEvent) -> None:
+        super().keyReleaseEvent(event)
+        if event.key() == Qt.Key.Key_Shift.value:
+            self.allowMultiSelect = False
 
     def mousePressEvent(self, event):
         """ Add overloaded functionality to make selection apparent and set block fullness when a time block is selected """
@@ -39,12 +57,33 @@ class GraphicsScene(QGraphicsScene):
 
         oldItems = self.selectedItems()
 
+
         super().mousePressEvent(event)
 
         if multiItemParent:
             multiItemParent.setSelected(True)
 
         items = self.selectedItems()
+
+        if self.allowMultiSelect:
+            try:
+                tempCombined = oldItems + items
+                tempCombined.sort(key=lambda e: e.data(0))
+                earliest = tempCombined[0].data(0)
+                latest = tempCombined[len(tempCombined) - 1].data(0)
+
+                for item in self.items():
+                    if (item.data(2) is not None and
+                        item.data(0) >= earliest and
+                        item.data(0) <= latest):
+                        item.setSelected(True)
+                for item in oldItems:
+                    item.setSelected(True)
+                items = self.selectedItems()
+            except:
+                print("Unable to get ordering from items")
+
+
         for item in oldItems:   # Change opacity of old selected items to opaque
             try:
                 if item not in items:
@@ -108,7 +147,6 @@ class GraphicsScene(QGraphicsScene):
 
         items = self.selectedItems()
         super().mouseReleaseEvent(event)
-        print("LENGTH, ", len(items))
 
         try:
             items.sort(key=lambda e: e.data(0))
@@ -124,7 +162,6 @@ class GraphicsScene(QGraphicsScene):
 
             if item.data(0) is not None:
                 newBlock = item.data(0)
-            print(newBlock)
 
             if self.doesCollide(item, newBlock):  # If old spot is occupied, need to find a new default spot
                 isOldFull = True

@@ -19,4 +19,5 @@ v. 1.0
 Known issues:
 - There is currently an issue using PyInstaller with PyQt6 that causes a segmentation fault in the bundled app after packaging on MacOS Ventura
     - Remedied by using Pyinstaller 4.8 & PyQt6 6.3.0 on MacOS Catalina
-- Issue with multi movement up bugging out and not remapping correctly
+- Issue with multi movement up bugging out and not remapping correctly (Unknown how to reproduce)
+- Saving with custom blocks does not work
