@@ -327,7 +327,7 @@ class Window(QWidget):
             colLastName = 3
             colIOL = 5
             colProcedure = 8
-            rowFirst = 2
+            rowFirst = 3
             #TODO: Add more robustness for detecting name & procedure
             #for row in dataframe1.iter_rows(1,softMaxRow): 
             try:
@@ -342,6 +342,7 @@ class Window(QWidget):
                         firstEmpty = -1
                         firstY = -1
                         blockType = "Regular"
+                        customLength = -1
 
                         if "Surgeon Break" in row[colIOL].value:
                             blockType = "Break"
@@ -354,16 +355,22 @@ class Window(QWidget):
 
                             if ("XEN" in procedure or "TRABECULECTOMY" in procedure):
                                 print("custom3")
-                            elif ("ORA" in procedure or "MICROPULSE" in procedure or "VIVITY" in procedure or
-                                "TORIC" in procedure):
+                                blockType = "Custom"
+                                customLength = 3
+                            elif ("VIVITY" in procedure or
+                                "TORIC" in procedure or "Toric" in procedure):
                                 print("premium")
+                                blockType = "Premium"
                             elif ("LASIK" in procedure or "GONIOTOMY" in procedure or "GONIOSYNECHIALYSIS" in procedure or
-                                "FEMTO" in procedure or "LENSX" in procedure):
+                                "FEMTO" in procedure or "LENSX" in procedure or "/ORA" in procedure or "MICROPULSE" in procedure):
                                 print("laser")
+                                blockType = "Laser"
                             elif "PHACO" in procedure:
                                 print("regular")
+                                blockType = "Regular"
                             else:
                                 print("Custom")
+                                customLength = 1
 
 
                         for block in self.scene.schedule:
@@ -389,8 +396,11 @@ class Window(QWidget):
                             timeText = self.scene.schedule[firstEmpty].beginString + " - " + self.scene.schedule[lastBlockIndex].endString
                         except:
                             print("There was an issue populating times")
-                        
-                        newBlock = GraphicsRectItem(0, 0, 100, self.blockSize * self.blockTimes[blockType], timeText, name)
+
+                        if customLength == -1:
+                            newBlock = GraphicsRectItem(0, 0, 100, self.blockSize * self.blockTimes[blockType], timeText, name)
+                        else:
+                            newBlock = GraphicsRectItem(0, 0, 100, self.blockSize * customLength, timeText, name)
                         newBlock.setBrush(QBrush(self.blockColors[blockType]))
                         newBlock.setPos(80, firstY)
                         newBlock.setData(0, firstEmpty)                                     # id of first block segment that rect occupies

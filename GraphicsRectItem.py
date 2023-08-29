@@ -38,3 +38,4 @@ class GraphicsRectItem(QGraphicsRectItem):
         timeRectText.setTextWidth(50)
         timeRectText.setData(3, 2)              # identifier for graphics to tell that this is block time text
 
+

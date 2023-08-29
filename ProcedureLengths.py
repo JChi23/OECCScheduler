@@ -1,13 +1,13 @@
 from enum import Enum  
 
 class Procedures(Enum):
-    PHACO = "Regular"
+    PHACO = "Regular" #1.0
     LASIK = "Laser"
     GONIOTOMY = "Laser"
     GONIOSYNECHIALYSIS = "Laser"
     FEMTO = "Laser"
     LENSX = "Laser"
-    ORA = "Premium"
+    ORA = "Laser" #.25
     MICROPULSE = "Premium"
     VIVITY = "Premium"
     TORIC = "Premium"

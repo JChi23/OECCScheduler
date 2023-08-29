@@ -21,3 +21,4 @@ Known issues:
     - Remedied by using Pyinstaller 4.8 & PyQt6 6.3.0 on MacOS Catalina
 - Issue with multi movement up bugging out and not remapping correctly (Unknown how to reproduce)
 - Saving schedules currently does not work as intended
+- Names can overflow blocks
