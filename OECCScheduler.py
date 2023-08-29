@@ -1,9 +1,9 @@
 """ Represents the entire Scheduler window including the button functionality and graphics scene """
 """ Data keys used in graphics objects: 
-        0 = block id placement, 
+        0 = (segment) block id placement; (procedure) beginning block, 
         1 = (procedure) length of block, 
-        2 = block procedure identifier, 
-        3 = text object identifier, 
+        2 = (procedure) block procedure identifier, 
+        3 = (2-date text, 1-name text) text object identifier, 
         4 = block segment identifier"""
 
 import os
@@ -15,6 +15,7 @@ from BlockSegment import BlockSegment
 from GraphicsScene import GraphicsScene
 from GraphicsRectItem import GraphicsRectItem
 from ScheduleColors import BlockColors
+import ProcedureDicts
 
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QBrush, QPainter, QPen, QColor, QIcon, QFont
@@ -142,69 +143,81 @@ class Window(QWidget):
                     else:
                         AMPMTag = "AM"
 
-
-        # Add breaktime
-        breakBlockLength = 2
-        breakStart = 4 * 19
-        breakBlock = QGraphicsRectItem(0, 0, 100, self.blockSize * breakBlockLength)
-        breakBlock.setBrush(QBrush(BlockColors.BREAK.value))
-        breakBlock.setPen(QPen(Qt.GlobalColor.black))
-        breakBlock.setPos(80, self.blockSize * 19)
-        breakBlock.setData(0, breakStart)                                     # id of first block segment that break occupies
-        breakBlock.setData(1, 4 * breakBlockLength)                         # number of segments that break occupies
-        breakBlock.setData(2, 0)                                            # identifier that this is a movable block
-        breakText = QGraphicsTextItem("Break", breakBlock)
-        breakText.setFont(QFont("Helvetica", 16))
-        timeRect = QGraphicsRectItem(100, 0, 40, self.blockSize * breakBlockLength, breakBlock)
-        timeRect.setBrush(QColor(255, 255, 255, 255))
-        timeRect.setPen(QPen(Qt.GlobalColor.black))
-
-        timeText = "Time"
-        try:
-            lastBlockIndex = breakStart + int(4 * breakBlockLength) - 1
-            timeText = self.scene.schedule[breakStart].beginString + " - " + self.scene.schedule[lastBlockIndex].endString
-        except:
-            print("There was an issue populating break time")
-
-        timeRectText = QGraphicsTextItem(timeText, breakBlock)
-        timeRectText.setX(100)
-        timeRectText.setFont(QFont("Helvetica", 10))
-        timeRectText.setTextWidth(50)
-        timeRectText.setData(3, 2)              # identifier for graphics to tell that this is block time text
+        breakFlag = True
         
-        self.scene.addItem(breakBlock)
-        breakBlock.setFlag(QGraphicsItem.GraphicsItemFlag.ItemIsMovable)
-        breakBlock.setFlag(QGraphicsItem.GraphicsItemFlag.ItemIsSelectable)
-        
-        try:
-            for i in range(4 * breakBlockLength):
-                self.scene.schedule[breakStart + i].isFull = True
-                self.scene.schedule[breakStart + i].isBreak = True
-        except:
-            print("There was an issue")
 
         skipCount = 0
 
         try:
             for savedBlock in saved:
+                inputs = savedBlock.split(",")
+                print(len(inputs))
                 firstChar = savedBlock[0]
                 otherChars = savedBlock[1:]
-                if len(otherChars) < 1:
-                    otherChars = "Patient"
-                if int(firstChar) == 0:
+                if int(inputs[0]) == 0:
                     skipCount += 1
                 else:
-                    self.insertSaved(int(firstChar), skipCount, otherChars)
-                    if int(firstChar) == 1:
+                    if len(inputs[1]) < 1:
+                        inputs[1] = "Patient"
+                    breakFlag = False
+                    self.insertSaved(int(inputs[0]), skipCount, inputs[1], int(inputs[2]))
+                    if int(inputs[0]) == 1:
+                        skipCount += 8
+                    elif int(inputs[0]) == 2:
+                        skipCount += int(inputs[2])
+                    elif int(inputs[0]) == 3:
                         skipCount += 4
-                    elif int(firstChar) == 2:
+                    elif int(inputs[0]) == 4:
                         skipCount += 5
-                    elif int(firstChar) == 3:
+                    elif int(inputs[0]) == 5:
                         skipCount += 6
                 
 
-        except:
+        except Exception as e:
             print("Could not insert saved procedures")
+            print(e)
+
+        if breakFlag:
+            # Add breaktime
+            breakBlockLength = 2
+            breakStart = 4 * 19
+            breakBlock = QGraphicsRectItem(0, 0, 100, self.blockSize * breakBlockLength)
+            breakBlock.setBrush(QBrush(BlockColors.BREAK.value))
+            breakBlock.setPen(QPen(Qt.GlobalColor.black))
+            breakBlock.setPos(80, self.blockSize * 19)
+            breakBlock.setData(0, breakStart)                                     # id of first block segment that break occupies
+            breakBlock.setData(1, 4 * breakBlockLength)                         # number of segments that break occupies
+            breakBlock.setData(2, ProcedureDicts.procedureIDs["Break"])                                            # identifier that this is a movable block
+            breakText = QGraphicsTextItem("Break", breakBlock)
+            breakText.setData(3, 1)
+            breakText.setFont(QFont("Helvetica", 16))
+            timeRect = QGraphicsRectItem(100, 0, 40, self.blockSize * breakBlockLength, breakBlock)
+            timeRect.setBrush(QColor(255, 255, 255, 255))
+            timeRect.setPen(QPen(Qt.GlobalColor.black))
+
+            timeText = "Time"
+            try:
+                lastBlockIndex = breakStart + int(4 * breakBlockLength) - 1
+                timeText = self.scene.schedule[breakStart].beginString + " - " + self.scene.schedule[lastBlockIndex].endString
+            except:
+                print("There was an issue populating break time")
+
+            timeRectText = QGraphicsTextItem(timeText, breakBlock)
+            timeRectText.setX(100)
+            timeRectText.setFont(QFont("Helvetica", 10))
+            timeRectText.setTextWidth(50)
+            timeRectText.setData(3, 2)              # identifier for graphics to tell that this is block time text
+            
+            self.scene.addItem(breakBlock)
+            breakBlock.setFlag(QGraphicsItem.GraphicsItemFlag.ItemIsMovable)
+            breakBlock.setFlag(QGraphicsItem.GraphicsItemFlag.ItemIsSelectable)
+            
+            try:
+                for i in range(4 * breakBlockLength):
+                    self.scene.schedule[breakStart + i].isFull = True
+                    self.scene.schedule[breakStart + i].isBreak = True
+            except:
+                print("There was an issue")
 
 
 
@@ -405,7 +418,7 @@ class Window(QWidget):
                         newBlock.setPos(80, firstY)
                         newBlock.setData(0, firstEmpty)                                     # id of first block segment that rect occupies
                         newBlock.setData(1, int(self.blockTimes[blockType] * 4))     # number of segments that rect occupies
-                        newBlock.setData(2, int(self.blockTimes[blockType] * 4) - 3)   # identifier for graphics to tell that this is a rect
+                        newBlock.setData(2, ProcedureDicts.procedureIDs[blockType])   # identifier for graphics to tell that this is a rect
 
                         # Define the pen (line)
                         pen = QPen(Qt.GlobalColor.black)
@@ -458,7 +471,7 @@ class Window(QWidget):
                         subItems = item.childItems()
                         for subItem in subItems:
                             if subItem.data(3) is not None and subItem.data(3) == 1:
-                                scheduleNames[item.data(0)] = subItem.toPlainText()
+                                scheduleNames[item.data(0)] = "," + subItem.toPlainText() + "," + str(item.data(1))
 
                 for i in range(len(schedule)):
                     if schedule[i][0] == 0 and schedule[i][1] != 1:
@@ -484,20 +497,28 @@ class Window(QWidget):
                     item.update()
 
     
-    def insertSaved(self, inputType = -1, skip = 0, name="Patient"):
+    def insertSaved(self, inputType = -1, skip = 0, name = "Patient", length = -1):
         """" Insert a new schedule block for saved schedule"""
         
         if inputType == 0:
             return
         elif inputType == 1:
-            blockType = "Regular"
+            blockType = "Break"
         elif inputType == 2:
-            blockType = "Laser"
+            blockType = "Custom"
         elif inputType == 3:
+            blockType = "Regular"
+        elif inputType == 4:
+            blockType = "Laser"
+        elif inputType == 5:
             blockType = "Premium"
         else:
             blockType = self.blockType
         # Find first empty block in scene that can accommodate new insertion
+        if blockType == "Custom":
+            blockLength = length / 4.00
+        else:
+            blockLength = self.blockTimes[blockType]
         firstEmpty = -1
         firstY = -1
         numSkips = skip
@@ -508,7 +529,7 @@ class Window(QWidget):
                 try: #this can be optimized to not recheck block segments that are filled probably
                     if block.isFull == False:
                         isColliding = False
-                        for i in range(1, int(self.blockTimes[blockType] * 4)):
+                        for i in range(1, int(blockLength * 4)):
                             if self.scene.schedule[block.order + i].isFull == True:
                                 isColliding = True
                                 break
@@ -523,23 +544,23 @@ class Window(QWidget):
         if firstEmpty != -1:
 
             # Draw a rectangle item, setting the dimensions and location corresponding to empty block.
-            rect = QGraphicsRectItem(0, 0, 100, self.blockSize * self.blockTimes[blockType])
+            rect = QGraphicsRectItem(0, 0, 100, self.blockSize * blockLength)
             rect.setBrush(QBrush(self.blockColors[blockType]))
             rect.setPos(80, firstY)
             rect.setData(0, firstEmpty)                                     # id of first block segment that rect occupies
-            rect.setData(1, int(self.blockTimes[blockType] * 4))     # number of segments that rect occupies
-            rect.setData(2, int(self.blockTimes[blockType] * 4) - 3)   # identifier for graphics to tell that this is a rect
+            rect.setData(1, int(blockLength * 4))     # number of segments that rect occupies
+            rect.setData(2, ProcedureDicts.procedureIDs[blockType])   # identifier for graphics to tell that this is a rect
             
             rectText = QGraphicsTextItem(name, rect)
             rectText.setData(3, 1)              # identifier for graphics to tell that this is block text
 
-            timeRect = QGraphicsRectItem(100, 0, 40, self.blockSize * self.blockTimes[blockType], rect)
+            timeRect = QGraphicsRectItem(100, 0, 40, self.blockSize * blockLength, rect)
             timeRect.setBrush(QColor(255, 255, 255, 255))
             timeRect.setPen(QPen(Qt.GlobalColor.black))
 
             timeText = "Time"
             try:
-                lastBlockIndex = firstEmpty + int(self.blockTimes[blockType] * 4) - 1
+                lastBlockIndex = firstEmpty + int(blockLength * 4) - 1
                 timeText = self.scene.schedule[firstEmpty].beginString + " - " + self.scene.schedule[lastBlockIndex].endString
             except:
                 print("There was an issue populating times")
@@ -556,7 +577,7 @@ class Window(QWidget):
             rect.setPen(pen)
             self.scene.addItem(rect)
             try:
-                for i in range(int(self.blockTimes[blockType] * 4)):
+                for i in range(int(blockLength * 4)):
                     self.scene.schedule[firstEmpty + i].isFull = True
                 
             except:
@@ -599,7 +620,7 @@ class Window(QWidget):
             rect.setPos(80, firstY)
             rect.setData(0, firstEmpty)                                     # id of first block segment that rect occupies
             rect.setData(1, int(self.blockTimes[blockType] * 4))     # number of segments that rect occupies
-            rect.setData(2, int(self.blockTimes[blockType] * 4) - 3)   # identifier for graphics to tell that this is a rect
+            rect.setData(2, ProcedureDicts.procedureIDs[blockType])   # identifier for graphics to tell that this is a rect
 
             rectText = QGraphicsTextItem(self.blockName, rect)
             rectText.setData(3, 1)              # identifier for graphics to tell that this is block text

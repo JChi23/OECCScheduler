@@ -13,3 +13,11 @@ class Procedures(Enum):
     TORIC = "Premium"
     XEN_GEL_STENT = "Custom 3.0"
     TRABECULECTOMY = "Custom 3.0"
+
+class ProcedureIDs(Enum):
+    EMPTY = 0
+    BREAK = 1
+    CUSTOM = 2
+    REGULAR = 3
+    LASER = 4
+    PREMIUM = 5
