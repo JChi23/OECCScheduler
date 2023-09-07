@@ -362,23 +362,23 @@ class Window(QWidget):
                             name = "Break"
                         else:
                             name = row[colFirstName].value[0] + ". " + row[colLastName].value
-                            procedure = row[colProcedure].value
+                            procedure = row[colProcedure].value.lower()
                             #check for block type and add it
                             print(name)
 
-                            if ("XEN" in procedure or "TRABECULECTOMY" in procedure):
+                            if ("xen" in procedure or "trabeculectomy" in procedure):
                                 print("custom3")
                                 blockType = "Custom"
                                 customLength = 3
-                            elif ("VIVITY" in procedure or
-                                "TORIC" in procedure or "Toric" in procedure):
+                            elif ("vivity" in procedure or
+                                "toric" in procedure):
                                 print("premium")
                                 blockType = "Premium"
-                            elif ("LASIK" in procedure or "GONIOTOMY" in procedure or "GONIOSYNECHIALYSIS" in procedure or
-                                "FEMTO" in procedure or "LENSX" in procedure or "/ORA" in procedure or "MICROPULSE" in procedure):
+                            elif ("lasik" in procedure or "goniotomy" in procedure or "goniosynechialysis" in procedure or
+                                "femto" in procedure or "lensx" in procedure or "/ora" in procedure or "micropulse" in procedure):
                                 print("laser")
                                 blockType = "Laser"
-                            elif "PHACO" in procedure:
+                            elif "phaco" in procedure:
                                 print("regular")
                                 blockType = "Regular"
                             else:
@@ -624,9 +624,13 @@ class Window(QWidget):
 
             rectText = QGraphicsTextItem(self.blockName, rect)
             rectText.setData(3, 1)              # identifier for graphics to tell that this is block text
-            # curFontSize = rectText.font().pointSize()
-            # print(curFontSize)
-            # rectText.setFont(QFont("Helvetica", 10))
+
+            print("FONT")
+            curFontSize = rectText.font().pointSize()
+            print(curFontSize)
+            print(rectText.font().pixelSize())
+            rectText.setFont(QFont("Helvetica", 5))
+            print(rectText.font().pointSize())
 
             timeRect = QGraphicsRectItem(100, 0, 40, self.blockSize * self.blockTimes[blockType], rect)
             timeRect.setBrush(QColor(255, 255, 255, 255))
