@@ -1,6 +1,10 @@
 # OECCScheduler v. 2.5
 A PyQt Surgery Scheduler for MVP
 
+v. 3.5
+- Added additional procedure categories
+- Added total case number to top of schedule
+
 v. 3.0
 - Added ability for custom-length blocks to be added
 - Added functionality for multi-select and movability of blocks
@@ -8,7 +12,7 @@ v. 3.0
 - Added date to top of schedule
 - Added additional time slots to schedule
 
-v. 2.5
+v. 2.1
 - Fixed a bug where procedure update would not update blocks correctly when moving to 7:30
 
 v. 2.0

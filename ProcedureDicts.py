@@ -1,6 +1,6 @@
 from ScheduleColors import BlockColors
 
-procedureIDs = {
+procedureIDs = { #What the 2 key value is set to for each procedure block
     "Empty" : 0,
     "Break" : 1,
     "Custom" : 2,
@@ -17,6 +17,7 @@ procedureIDs = {
     "Shunt" : 13,
     "PanOptix" : 14,
     "XEN" : 15,
+    "Trimox" : 16,
 }
 
 blockTimes = {
@@ -35,6 +36,7 @@ blockTimes = {
     "Shunt" : 4,
     "PanOptix" : 1.5,
     "XEN" : 3,
+    "Trimox" : 1,
 }
 
 blockColors = {
@@ -53,4 +55,5 @@ blockColors = {
     "Shunt" : BlockColors.SHUNT.value,
     "PanOptix" : BlockColors.PANOPTIX.value,
     "XEN" : BlockColors.XEN.value,
+    "Trimox" : BlockColors.TRIMOX.value,
 }

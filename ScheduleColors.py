@@ -17,3 +17,4 @@ class BlockColors(Enum):
     SHUNT = QColor(196, 163, 106)
     PANOPTIX = QColor(178, 142, 232)
     XEN = QColor(212, 70, 93)
+    TRIMOX = QColor(97, 186, 180)

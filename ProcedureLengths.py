@@ -2,6 +2,7 @@ from enum import Enum
 
 class Procedures(Enum):
     PHACO = "Regular" #1.0
+    TRIMOX = "Regular"
     LASIK = "Laser"
     GONIOTOMY = "Laser"
     GONIOSYNECHIALYSIS = "Laser"

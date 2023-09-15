@@ -40,6 +40,7 @@ class Window(QWidget):
 
     schedule = []
     blockSize = 24
+    currentCaseCount = 0
     blockType = "Regular"
     blockName = "Patient"
     blockTimeCustom = 1
@@ -76,7 +77,9 @@ class Window(QWidget):
         self.scene = GraphicsScene(0, -24, 260, self.blockSize * numBlocks + 24, self)
         
         dateItem = self.scene.addText("Today's date: " + str(date.today()))
-        dateItem.setPos(15, -24)
+        dateItem.setPos(10, -24)
+        self.caseCountItem = self.scene.addText("Cases: " + str(self.currentCaseCount))
+        self.caseCountItem.setPos(180, -24)
 
 
             # Add time slots & corresponding boxes to graphics scene
@@ -282,9 +285,15 @@ class Window(QWidget):
                             for i in range(item.data(1)):
                                 self.scene.schedule[item.data(0) + i].isFull = False
                 self.scene.removeItem(item)
+                if (item.data(2) != 1):
+                    self.currentCaseCount -= 1
+                    self.caseCountItem.setPlainText("Cases: " + str(self.currentCaseCount))
 
     def clear(self):
         """ Clear all blocks in schedule """
+
+        self.currentCaseCount = 0
+        self.caseCountItem.setPlainText("Cases: " + str(self.currentCaseCount))
 
         for item in self.scene.items():
             if item.data(2) is not None:
@@ -331,11 +340,11 @@ class Window(QWidget):
             colProcedure = 8
             rowFirst = 3
             #TODO: Add more robustness for detecting name & procedure
-            #for row in dataframe1.iter_rows(1,softMaxRow): 
+       
             try:
 
                 for row in dataframe1.iter_rows(rowFirst, softMaxRow):
-                    if  row[colFirstName].value is None and row[colLastName].value is None:
+                    if  row[colFirstName].value is None and row[colLastName].value is None and row[colIOL].value is None:
                         break
           
                     else:
@@ -416,8 +425,10 @@ class Window(QWidget):
                             print("There was an issue")
                         newBlock.setFlag(QGraphicsItem.GraphicsItemFlag.ItemIsMovable)
                         newBlock.setFlag(QGraphicsItem.GraphicsItemFlag.ItemIsSelectable)
-
-                        self.darkenFull()
+                        if (ProcedureDicts.procedureIDs[blockType] != 1):
+                            self.currentCaseCount += 1
+                self.caseCountItem.setPlainText("Cases: " + str(self.currentCaseCount))
+                self.darkenFull()
                         
 
             except Exception as e:
@@ -471,14 +482,14 @@ class Window(QWidget):
     def darkenFull(self):
         """ Utility function to visualize which segments are currently full """
 
-        # for item in self.scene.items():
-        #     if item.data(4) is not None:
-        #         if self.scene.schedule[item.data(0)].isFull == True:
-        #             item.setBrush(QColor(0, 0, 0, 125))
-        #             item.update()
-        #         else: 
-        #             item.setBrush(QColor(0, 0, 0, 0))
-        #             item.update()
+        for item in self.scene.items():
+            if item.data(4) is not None:
+                if self.scene.schedule[item.data(0)].isFull == True:
+                    item.setBrush(QColor(0, 0, 0, 125))
+                    item.update()
+                else: 
+                    item.setBrush(QColor(0, 0, 0, 0))
+                    item.update()
         return
 
     
@@ -569,6 +580,10 @@ class Window(QWidget):
                 print("There was an issue")
             rect.setFlag(QGraphicsItem.GraphicsItemFlag.ItemIsMovable)
             rect.setFlag(QGraphicsItem.GraphicsItemFlag.ItemIsSelectable)
+
+        if (ProcedureDicts.procedureIDs[blockType] != 1):
+            self.currentCaseCount += 1
+            self.caseCountItem.setPlainText("Cases: " + str(self.currentCaseCount))
     
 
     def insert(self):
@@ -599,7 +614,6 @@ class Window(QWidget):
         if firstEmpty != -1:
 
             # Draw a rectangle item, setting the dimensions and location corresponding to empty block.
-            print(self.blockTimes[blockType])
             rect = QGraphicsRectItem(0, 0, 100, self.blockSize * self.blockTimes[blockType])
             rect.setBrush(QBrush(self.blockColors[blockType]))
             rect.setPos(80, firstY)
@@ -646,6 +660,11 @@ class Window(QWidget):
                 print("There was an issue")
             rect.setFlag(QGraphicsItem.GraphicsItemFlag.ItemIsMovable)
             rect.setFlag(QGraphicsItem.GraphicsItemFlag.ItemIsSelectable)
+
+        if (ProcedureDicts.procedureIDs[blockType] != 1):
+            self.currentCaseCount += 1
+            self.caseCountItem.setPlainText("Cases: " + str(self.currentCaseCount))
+        self.darkenFull()
 
     
 

@@ -28,7 +28,7 @@ class GraphicsScene(QGraphicsScene):
     
     def __init__(self, x, y, width, height, parent=None):
         super().__init__(x, y, width, height, parent)
-        print(Qt.Key.Key_Shift.value)
+        #print(Qt.Key.Key_Shift.value)
 
     def keyPressEvent(self, event: QKeyEvent) -> None:
         super().keyPressEvent(event)
