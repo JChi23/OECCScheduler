@@ -5,14 +5,18 @@ class Procedures(Enum):
     LASIK = "Laser"
     GONIOTOMY = "Laser"
     GONIOSYNECHIALYSIS = "Laser"
-    FEMTO = "Laser"
+    FEMTO = "Laser" #FEMTO, LENSX, LASIK are all the same (laser)
     LENSX = "Laser"
     ORA = "Laser" #.25
+    CANALOPLASTY = "Laser"
+    STENT = "Laser"
+    PANOPTIX = "Premium"
     MICROPULSE = "Premium"
     VIVITY = "Premium"
     TORIC = "Premium"
     XEN_GEL_STENT = "Custom 3.0"
     TRABECULECTOMY = "Custom 3.0"
+    SHUNT = "Custom 4.0"
 
 class ProcedureIDs(Enum):
     EMPTY = 0

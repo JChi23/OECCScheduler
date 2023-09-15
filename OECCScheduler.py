@@ -44,20 +44,8 @@ class Window(QWidget):
     blockName = "Patient"
     blockTimeCustom = 1
     customBlockLength = 1.00
-    blockTimes = {
-        "Regular" : 1,
-        "Laser" : 1.25,
-        "Premium" : 1.5,
-        "Custom" :  1,
-        "Break" : 2,
-    }
-    blockColors = {
-        "Regular" : BlockColors.REGULAR.value,
-        "Laser" : BlockColors.LASER.value,
-        "Premium" : BlockColors.PREMIUM.value,
-        "Custom" : BlockColors.CUSTOM.value,
-        "Break" : BlockColors.BREAK.value,
-    }
+    blockTimes = ProcedureDicts.blockTimes
+    blockColors = ProcedureDicts.blockColors
     blockEndMinutes = {
         0 : { 0 : "03", 1 : "07", 2 : "11", 3 : "14",},
         15 : { 0 : "18", 1 : "22", 2 : "26", 3 : "39",},
@@ -151,9 +139,7 @@ class Window(QWidget):
         try:
             for savedBlock in saved:
                 inputs = savedBlock.split(",")
-                print(len(inputs))
-                firstChar = savedBlock[0]
-                otherChars = savedBlock[1:]
+                
                 if int(inputs[0]) == 0:
                     skipCount += 1
                 else:
@@ -199,8 +185,9 @@ class Window(QWidget):
             try:
                 lastBlockIndex = breakStart + int(4 * breakBlockLength) - 1
                 timeText = self.scene.schedule[breakStart].beginString + " - " + self.scene.schedule[lastBlockIndex].endString
-            except:
+            except Exception as e:
                 print("There was an issue populating break time")
+                print(e)
 
             timeRectText = QGraphicsTextItem(timeText, breakBlock)
             timeRectText.setX(100)
@@ -239,7 +226,9 @@ class Window(QWidget):
         vbox.addWidget(insert)
 
         setBlock = QComboBox()
-        setBlock.addItems(["Regular", "Laser", "Premium", "Custom", "Break"])
+        setBlock.addItems(["Custom", "Break", "Regular", "Laser", "Premium", "Trabeculectomy", 
+                           "Vivity", "Toric/ORA", "Goniotomy", "Micropulse", "Canaloplasty", "Stent",
+                           "Shunt", "PanOptix", "XEN"])
         setBlock.currentTextChanged.connect(self.text_changed)
         vbox.addWidget(setBlock)
 
@@ -346,43 +335,38 @@ class Window(QWidget):
             try:
 
                 for row in dataframe1.iter_rows(rowFirst, softMaxRow):
-                    if  row[colTime].value is None:
+                    if  row[colFirstName].value is None and row[colLastName].value is None:
                         break
-                    # if row[colIOL].value == "Surgeon Break":
-                    #     print('temp')
-                    #     #insert a break block
+          
                     else:
                         firstEmpty = -1
                         firstY = -1
                         blockType = "Regular"
                         customLength = -1
 
-                        if "Surgeon Break" in row[colIOL].value:
+                        if row[colIOL].value is not None and "Surgeon Break" in row[colIOL].value:
                             blockType = "Break"
                             name = "Break"
                         else:
                             name = row[colFirstName].value[0] + ". " + row[colLastName].value
                             procedure = row[colProcedure].value.lower()
+                            
                             #check for block type and add it
-                            print(name)
 
-                            if ("xen" in procedure or "trabeculectomy" in procedure):
-                                print("custom3")
-                                blockType = "Custom"
-                                customLength = 3
-                            elif ("vivity" in procedure or
+                            if ("shunt" in procedure):
+                                blockType = "Shunt"
+                            elif ("xen" in procedure or "trabeculectomy" in procedure):
+                                blockType = "Trabeculectomy"
+                            elif ("vivity" in procedure or "panoptix" in procedure or
                                 "toric" in procedure):
-                                print("premium")
                                 blockType = "Premium"
                             elif ("lasik" in procedure or "goniotomy" in procedure or "goniosynechialysis" in procedure or
-                                "femto" in procedure or "lensx" in procedure or "/ora" in procedure or "micropulse" in procedure):
-                                print("laser")
+                                "femto" in procedure or "lensx" in procedure or "/ora" in procedure or "micropulse" in procedure or
+                                "canaloplasty" in procedure or "stent" in procedure):
                                 blockType = "Laser"
-                            elif "phaco" in procedure:
-                                print("regular")
+                            elif "phaco" in procedure or "trimox" in procedure:
                                 blockType = "Regular"
                             else:
-                                print("Custom")
                                 customLength = 1
 
 
@@ -487,14 +471,15 @@ class Window(QWidget):
     def darkenFull(self):
         """ Utility function to visualize which segments are currently full """
 
-        for item in self.scene.items():
-            if item.data(4) is not None:
-                if self.scene.schedule[item.data(0)].isFull == True:
-                    item.setBrush(QColor(0, 0, 0, 125))
-                    item.update()
-                else: 
-                    item.setBrush(QColor(0, 0, 0, 0))
-                    item.update()
+        # for item in self.scene.items():
+        #     if item.data(4) is not None:
+        #         if self.scene.schedule[item.data(0)].isFull == True:
+        #             item.setBrush(QColor(0, 0, 0, 125))
+        #             item.update()
+        #         else: 
+        #             item.setBrush(QColor(0, 0, 0, 0))
+        #             item.update()
+        return
 
     
     def insertSaved(self, inputType = -1, skip = 0, name = "Patient", length = -1):
@@ -625,12 +610,12 @@ class Window(QWidget):
             rectText = QGraphicsTextItem(self.blockName, rect)
             rectText.setData(3, 1)              # identifier for graphics to tell that this is block text
 
-            print("FONT")
+            #print("FONT")
             curFontSize = rectText.font().pointSize()
-            print(curFontSize)
-            print(rectText.font().pixelSize())
-            rectText.setFont(QFont("Helvetica", 5))
-            print(rectText.font().pointSize())
+            #print(curFontSize)
+            #print(rectText.font().pixelSize())
+            rectText.setFont(QFont("Helvetica", 13))
+            #print(rectText.font().pointSize())
 
             timeRect = QGraphicsRectItem(100, 0, 40, self.blockSize * self.blockTimes[blockType], rect)
             timeRect.setBrush(QColor(255, 255, 255, 255))

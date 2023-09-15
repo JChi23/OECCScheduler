@@ -1,3 +1,5 @@
+from ScheduleColors import BlockColors
+
 procedureIDs = {
     "Empty" : 0,
     "Break" : 1,
@@ -5,4 +7,50 @@ procedureIDs = {
     "Regular" : 3,
     "Laser" : 4,
     "Premium" : 5,
+    "Trabeculectomy" : 6, 
+    "Vivity" : 7,
+    "Toric/ORA" : 8,
+    "Goniotomy" : 9,
+    "Micropulse" : 10,
+    "Canaloplasty" : 11,
+    "Stent" : 12,
+    "Shunt" : 13,
+    "PanOptix" : 14,
+    "XEN" : 15,
+}
+
+blockTimes = {
+    "Regular" : 1,
+    "Laser" : 1.25,
+    "Premium" : 1.5,
+    "Custom" :  1,
+    "Break" : 2,
+    "Trabeculectomy" : 3, 
+    "Vivity" : 1.5,
+    "Toric/ORA" : 1.5,
+    "Goniotomy" : 1.25,
+    "Micropulse" : 1.25,
+    "Canaloplasty" : 1.25,
+    "Stent" : 1.25,
+    "Shunt" : 4,
+    "PanOptix" : 1.5,
+    "XEN" : 3,
+}
+
+blockColors = {
+    "Regular" : BlockColors.REGULAR.value,
+    "Laser" : BlockColors.LASER.value,
+    "Premium" : BlockColors.PREMIUM.value,
+    "Custom" : BlockColors.CUSTOM.value,
+    "Break" : BlockColors.BREAK.value,
+    "Trabeculectomy" : BlockColors.TRABECULECTOMY.value, 
+    "Vivity" : BlockColors.VIVITY.value,
+    "Toric/ORA" : BlockColors.TORIC_ORA.value,
+    "Goniotomy" : BlockColors.GONIOTOMY.value,
+    "Micropulse" : BlockColors.MICROPULSE.value,
+    "Canaloplasty" : BlockColors.CANALOPLASTY.value,
+    "Stent" : BlockColors.STENT.value,
+    "Shunt" : BlockColors.SHUNT.value,
+    "PanOptix" : BlockColors.PANOPTIX.value,
+    "XEN" : BlockColors.XEN.value,
 }
