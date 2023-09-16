@@ -168,6 +168,8 @@ class GraphicsScene(QGraphicsScene):
             
             if not item.isSelected():
                 item.setSelected(True)
+
+            prevBlocksEmpty = 0
         
             for block in self.schedule: # can be optimized to only check for colliding things
                 try:

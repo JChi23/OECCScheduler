@@ -289,6 +289,8 @@ class Window(QWidget):
                     self.currentCaseCount -= 1
                     self.caseCountItem.setPlainText("Cases: " + str(self.currentCaseCount))
 
+        self.darkenFull()
+
     def clear(self):
         """ Clear all blocks in schedule """
 
@@ -306,6 +308,8 @@ class Window(QWidget):
                 block.isFull = False
             except:
                 break
+
+        self.darkenFull()
 
     def createTimeText(self, firstEmpty, blockType):
         timeText = "Time"

@@ -1,4 +1,4 @@
-# OECCScheduler v. 2.5
+# OECCScheduler v. 3.5
 A PyQt Surgery Scheduler for MVP
 
 v. 3.5
