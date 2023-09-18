@@ -170,19 +170,88 @@ class GraphicsScene(QGraphicsScene):
                 item.setSelected(True)
 
             prevBlocksEmpty = 0
+            newBlocksEmpty = 0
         
-            for block in self.schedule: # can be optimized to only check for colliding things
-                try:
-                    if ((block.isFull == False and
-                        abs(block.y - item.y()) <= abs(self.schedule[newBlock].y - item.y())) or
-                        (block.isFull == False and isOldFull)):
-                        if not self.doesCollide(item, block.order):
-                            newBlock = block.order
-                            if isOldFull:
-                                isOldFull = False
-                except:
-                    print("there was an issue with block collision")
-                    break
+                # this will insert the block into the first available space without moving anything else
+            # for block in self.schedule: # can be optimized to only check for colliding things
+            #     try:
+            #         if (item.data(1) + block.order > len(self.schedule)):
+            #             break
+
+            #         if (block.isFull == False):
+            #             prevBlocksEmpty += 1
+
+            #             if (abs(block.y - item.y()) <= abs(self.schedule[newBlock].y - item.y()) or isOldFull):
+            #                 if not self.doesCollide(item, block.order):
+            #                     newBlock = block.order
+            #                     newBlocksEmpty = prevBlocksEmpty
+            #                     if isOldFull:
+            #                         isOldFull = False
+            #     except Exception as e:
+            #         print("there was an issue with block collision", e)
+            #         break
+
+
+                # this will insert the block as close as possible to where it is dropped, shifting other blocks around
+            lpointer = 0
+            rpointer = len(self.schedule) - 1
+            mpointer = (lpointer + rpointer) // 2
+            try:
+                while (lpointer <= rpointer):
+                    if (rpointer - lpointer == 1): # two elements remaining
+                        if (abs(self.schedule[lpointer].y - item.y()) > abs(self.schedule[rpointer].y - item.y())):
+                            if (abs(self.schedule[mpointer].y - item.y()) > abs(self.schedule[rpointer].y - item.y())):
+                                mpointer = rpointer
+                            break
+                        else:                    
+                            if (abs(self.schedule[mpointer].y - item.y()) > abs(self.schedule[lpointer].y - item.y())):
+                                mpointer = lpointer
+                            break
+                    mpointer = (lpointer + rpointer) // 2
+                    if (rpointer - lpointer == 2): # three elements remaining
+                        if (self.schedule[mpointer].y > item.y()):
+                            if (abs(self.schedule[mpointer].y - item.y()) > abs(self.schedule[rpointer].y - item.y())):
+                                mpointer = rpointer
+                            break
+                        else:                    
+                            if (abs(self.schedule[mpointer].y - item.y()) > abs(self.schedule[lpointer].y - item.y())):
+                                mpointer = lpointer
+                            break
+                    
+                                                        #binary search
+                    if (self.schedule[mpointer].y == item.y()):
+                        break
+                    else:
+                        if (self.schedule[mpointer].y > item.y()):
+                            rpointer = mpointer - 1
+                        else:
+                            lpointer = mpointer + 1
+                print("MID: ", mpointer)
+                    
+                newBlock = self.schedule[mpointer].order
+
+                for i in range(newBlock + (item.data(1) // 2) - 1, -1, -1):
+                    if (self.schedule[i].isFull == False):
+                        prevBlocksEmpty += 1
+
+                    if (prevBlocksEmpty == item.data(1)):
+                        self.squish(i, newBlock + item.data(1) - 1)
+                        break
+                
+                if (prevBlocksEmpty != item.data(1)):
+                    prevBlocksEmpty = 0
+                    for i in range(newBlock + (item.data(1) // 2), len(self.schedule)):
+                        if (self.schedule[i].isFull == False):
+                            prevBlocksEmpty += 1
+                        
+                        if (prevBlocksEmpty == item.data(1)):
+                            self.squish(newBlock, i, False)
+                            break
+            
+                    
+            except Exception as e:
+                print("there was an issue with block collision", e)
+                break
      
             # Update procedure time and location with new block
             self.move(item, item.data(0), newBlock)
@@ -212,9 +281,36 @@ class GraphicsScene(QGraphicsScene):
                     break
             
             return isColliding
-        except:
-            print("Could not check for collisions")
+        except Exception as e:
+            print("Could not check for collisions: ", e)
             return True
+        
+    def squish(self, startingIndex, endingIndex, squishUp = True):
+        print("squishing")
+        if squishUp:
+            bpointer = startingIndex
+            while (self.schedule[bpointer].isFull == True and bpointer < endingIndex):
+                bpointer += 1
+            fpointer = bpointer
+
+            print(fpointer)
+
+            while (fpointer < endingIndex):
+                if (self.schedule[fpointer].isFull == True):
+                    for item in self.items():
+                        if (item.data(2) is not None and item.data(0) == self.schedule[fpointer].order):
+                            self.move(item, item.data(0), self.schedule[bpointer].order)
+                            bpointer = bpointer + item.data(1) - 1
+                            fpointer = max(fpointer + 1, bpointer)
+                            break
+                else:
+                    fpointer += 1
+                    
+        else:
+            fpointer = endingIndex
+            bpointer = endingIndex
+
+        print("finished squishing")
 
     def move(self, movedItem, oldBlock = 0, newBlock = 0):
         """ Move movedItem from oldBlock in schedule to newBlock """
