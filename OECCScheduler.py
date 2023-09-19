@@ -112,6 +112,9 @@ class Window(QWidget):
                 blockSegBox.setData(4, 0)           # Set 4 to be identifier for a block segment
                 # blockSegBox.setData(20, textHour)   # Set 20 to represent the hour of the block
                 # blockSegBox.setData(21, self.blockMinutes[startMinute][j])  # Set 21 to represent the minutes of the block
+                blockSegBoxText = QGraphicsTextItem(str(i *4 + j), blockSegBox)
+                blockSegBoxText.setPos(140, -4)
+                blockSegBoxText.setFont(QFont("Helvetica", 6))
                 self.scene.addItem(blockSegBox)
                 self.scene.schedule.append(BlockSegment(i * 4 + j, (self.blockSize * i) + ((self.blockSize / 4) * j),
                                                         textHour + ":" + self.blockBeginMinutes[startMinute][j],
@@ -120,7 +123,6 @@ class Window(QWidget):
             blockBox.setBrush(QColor(255, 0, 0, 0))
             blockBox.setPen(QPen(Qt.GlobalColor.black))
             self.scene.addItem(blockBox)
-            
 
             startMinute += 15
             if startMinute >= 60:
@@ -163,8 +165,7 @@ class Window(QWidget):
                 
 
         except Exception as e:
-            print("Could not insert saved procedures")
-            print(e)
+            print("Could not insert saved procedures: ", e)
 
         if breakFlag:
             # Add breaktime
@@ -189,8 +190,7 @@ class Window(QWidget):
                 lastBlockIndex = breakStart + int(4 * breakBlockLength) - 1
                 timeText = self.scene.schedule[breakStart].beginString + " - " + self.scene.schedule[lastBlockIndex].endString
             except Exception as e:
-                print("There was an issue populating break time")
-                print(e)
+                print("There was an issue populating break time: ", e)
 
             timeRectText = QGraphicsTextItem(timeText, breakBlock)
             timeRectText.setX(100)
@@ -199,6 +199,7 @@ class Window(QWidget):
             timeRectText.setData(3, 2)              # identifier for graphics to tell that this is block time text
             
             self.scene.addItem(breakBlock)
+            self.scene.procedures.append(breakBlock)
             breakBlock.setFlag(QGraphicsItem.GraphicsItemFlag.ItemIsMovable)
             breakBlock.setFlag(QGraphicsItem.GraphicsItemFlag.ItemIsSelectable)
             
@@ -285,6 +286,7 @@ class Window(QWidget):
                             for i in range(item.data(1)):
                                 self.scene.schedule[item.data(0) + i].isFull = False
                 self.scene.removeItem(item)
+                self.scene.procedures.remove(item)
                 if (item.data(2) != 1):
                     self.currentCaseCount -= 1
                     self.caseCountItem.setPlainText("Cases: " + str(self.currentCaseCount))
@@ -296,6 +298,7 @@ class Window(QWidget):
 
         self.currentCaseCount = 0
         self.caseCountItem.setPlainText("Cases: " + str(self.currentCaseCount))
+        self.scene.procedures.clear()
 
         for item in self.scene.items():
             if item.data(2) is not None:
@@ -486,6 +489,8 @@ class Window(QWidget):
     def darkenFull(self):
         """ Utility function to visualize which segments are currently full """
 
+        #print("Procedures: ", len(self.scene.procedures))
+
         for item in self.scene.items():
             if item.data(4) is not None:
                 if self.scene.schedule[item.data(0)].isFull == True:
@@ -576,6 +581,7 @@ class Window(QWidget):
             pen = QPen(Qt.GlobalColor.black)
             rect.setPen(pen)
             self.scene.addItem(rect)
+            self.scene.procedures.append(rect)
             try:
                 for i in range(int(blockLength * 4)):
                     self.scene.schedule[firstEmpty + i].isFull = True
@@ -656,6 +662,7 @@ class Window(QWidget):
             pen = QPen(Qt.GlobalColor.black)
             rect.setPen(pen)
             self.scene.addItem(rect)
+            self.scene.procedures.append(rect)
             try:
                 for i in range(int(self.blockTimes[blockType] * 4)):
                     self.scene.schedule[firstEmpty + i].isFull = True
