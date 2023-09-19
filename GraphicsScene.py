@@ -198,70 +198,94 @@ class GraphicsScene(QGraphicsScene):
                 
             newBlock = self.schedule[mpointer].order
 
-            conflictFlag = False
-            for i in range(totalProcedureSize):
-                if self.schedule[i].isFull == True:
-                    conflictFlag = True
-                    break
+            # conflictCount = 0
+            # for i in range(totalProcedureSize):
+            #     if self.schedule[newBlock + i].isFull == True:
+            #         conflictCount += 1
+            #         break
 
-            if conflictFlag:
+            # if conflictCount > 0:
 
-                squishIndex = newBlock + (totalProcedureSize // 2) - 1
-                squishAddTop = 0
-                squishAddBot = 0
-                containsBlock = False
+            #     squishIndex = newBlock + (totalProcedureSize // 2) - 1
+            #     squishAddTop = 0
+            #     squishAddBot = 0
+            #     containsBlock = False
 
-                for procedure in self.procedures:
-                    if (not procedure.isSelected() and # Find procedures that begin in the anticipated insert size
-                        procedure.data(0) >= newBlock and
-                        procedure.data(0) <= newBlock + totalProcedureSize - 1):
-                        containsBlock = True
-                        if (#procedure.data(0) + procedure.data(1) - 1 <= newBlock + totalProcedureSize - 1 and
-                            procedure.data(0) <= newBlock + (totalProcedureSize // 2) - 1 and
-                            procedure.data(0) + procedure.data(1) - 1 >= newBlock + (totalProcedureSize // 2) - 1): # If procedure is completely encapsulated within insert and contains midpoint
-                            # if (procedure.data(0) > newBlock + (totalProcedureSize // 2) - 1):
-                            #     squishAddBot += procedure.data(1)
-                            # elif (procedure.data(0) + procedure.data(1) - 1 <= newBlock + (totalProcedureSize // 2) - 1):
-                            #     squishAddTop += procedure.data(1)
-                            # else:
-                            if (procedure.data(0) + (procedure.data(1) // 2) - 1 > newBlock + (totalProcedureSize // 2) - 1): # If midpoint of procedure is below midpoint of insert
-                                #squishAddBot += procedure.data(1)
-                                squishIndex = procedure.data(0) - 1
-                            else:
-                                #squishAddTop += procedure.data(1)
-                                squishIndex = procedure.data(0) + procedure.data(1) - 1
+            #     for procedure in self.procedures:
+            #         if (not procedure.isSelected() and # Find procedures that begin in the anticipated insert size
+            #             procedure.data(0) >= newBlock and
+            #             procedure.data(0) <= newBlock + totalProcedureSize - 1):
+            #             containsBlock = True
+            #             if (#procedure.data(0) + procedure.data(1) - 1 <= newBlock + totalProcedureSize - 1 and
+            #                 procedure.data(0) <= newBlock + (totalProcedureSize // 2) - 1 and
+            #                 procedure.data(0) + procedure.data(1) - 1 >= newBlock + (totalProcedureSize // 2) - 1): # If procedure is completely encapsulated within insert and contains midpoint
+            #                 # if (procedure.data(0) > newBlock + (totalProcedureSize // 2) - 1):
+            #                 #     squishAddBot += procedure.data(1)
+            #                 # elif (procedure.data(0) + procedure.data(1) - 1 <= newBlock + (totalProcedureSize // 2) - 1):
+            #                 #     squishAddTop += procedure.data(1)
+            #                 # else:
+            #                 if (procedure.data(0) + (procedure.data(1) // 2) - 1 > newBlock + (totalProcedureSize // 2) - 1): # If midpoint of procedure is below midpoint of insert
+            #                     #squishAddBot += procedure.data(1)
+            #                     squishIndex = procedure.data(0) - 1
+            #                 else:
+            #                     #squishAddTop += procedure.data(1)
+            #                     squishIndex = procedure.data(0) + procedure.data(1) - 1
 
-                        else:                                       # If procedure begins in insert but finishes outside
-                            if (procedure.data(0) <= newBlock + (totalProcedureSize // 2) - 1):
-                                squishIndex = procedure.data(0) - 1
-                            squishAddBot += newBlock + totalProcedureSize - procedure.data(0)
-                    elif (not procedure.isSelected() and
-                        procedure.data(0) + procedure.data(1) - 1 >= newBlock and
-                        procedure.data(0) + procedure.data(1) - 1 <= newBlock + totalProcedureSize - 1): # Find procedure that ends in insert
-                        containsBlock = True
-                        squishAddTop += procedure.data(0) + procedure.data(1) - newBlock
+            #             else:                                       # If procedure begins in insert but finishes outside
+            #                 if (procedure.data(0) <= newBlock + (totalProcedureSize // 2) - 1):
+            #                     squishIndex = procedure.data(0) - 1
+            #                 #squishAddBot += newBlock + totalProcedureSize - procedure.data(0)
+            #         elif (not procedure.isSelected() and
+            #             procedure.data(0) + procedure.data(1) - 1 >= newBlock and
+            #             procedure.data(0) + procedure.data(1) - 1 <= newBlock + totalProcedureSize - 1): # Find procedure that ends in insert
+            #             containsBlock = True
+            #             #squishAddTop += procedure.data(0) + procedure.data(1) - newBlock
+            #             if (procedure.data(0) + procedure.data(1) - 1 >= newBlock + (totalProcedureSize // 2) - 1): # If procedure ends past insert midpoint
+            #                 squishIndex = procedure.data(0) + procedure.data(1) - 1
 
-                if not containsBlock:
-                    for procedure in self.procedures:
-                        if (not procedure.isSelected() and # Find a procedure that completely encapsulates moved procedure and choose to either position above or below
-                            procedure.data(0) + procedure.data(1) - 1 > newBlock + totalProcedureSize - 1 and
-                            procedure.data(0) < newBlock):
-                            if (newBlock > (procedure.data(0) + (procedure.data(1) // 2) - 1)): # Try to fit insert below at index
-                                squishAddTop += (procedure.data(1) + procedure.data(1) - newBlock)
-                                squishIndex = procedure.data(0) + procedure.data(1) - 1
-                            else:                                                               # Try to fit insert above at index
-                                squishAddBot += (newBlock + totalProcedureSize - procedure.data(0))
-                                squishIndex = procedure.data(0) - 1
-                            break
+            #     totalTopSquish = 0
+            #     totalBotSquish = 0
+                
+            #     if not containsBlock:
+            #         for procedure in self.procedures:
+            #             if (not procedure.isSelected() and # Find a procedure that completely encapsulates moved procedure and choose to either position above or below
+            #                 procedure.data(0) + procedure.data(1) - 1 > newBlock + totalProcedureSize - 1 and
+            #                 procedure.data(0) < newBlock):
+            #                 if (newBlock > (procedure.data(0) + (procedure.data(1) // 2) - 1)): # Try to fit insert below at index
+            #                     #squishAddTop += (procedure.data(1) + procedure.data(1) - newBlock)
+            #                     squishIndex = procedure.data(0) + procedure.data(1) - 1
+            #                     totalTopSquish = (procedure.data(0) + procedure.data(1) - newBlock)
+            #                 else:                                                               # Try to fit insert above at index
+            #                     #squishAddBot += (newBlock + totalProcedureSize - procedure.data(0))
+            #                     squishIndex = procedure.data(0) - 1
+            #                     totalBotSquish = (newBlock + totalProcedureSize - procedure.data(0))
+            #                 break
+            #     else:
 
-                # Check for spaces and squish above and below
+            #         # Check for spaces and squish above and below
+                    
+            #         for i in range(newBlock, squishIndex + 1):
+            #             if (self.schedule[i].isFull == True):
+            #                 totalTopSquish += 1
+            #         for i in range(squishIndex + 1, newBlock + totalProcedureSize):
+            #             if (self.schedule[i].isFull == True):
+            #                 totalBotSquish += 1
+
+            squishRt = self.squishHelper(newBlock, totalProcedureSize)
+            totalTopSquish = squishRt[0]
+            totalBotSquish = squishRt[1]
+            squishIndex = squishRt[2]
+
+            totalSquishRem = totalTopSquish + totalBotSquish
+            # totalTopSquish = totalProcedureSize + squishAddTop
+            # totalBotSquish = squishAddBot
+            topIndex = newBlock - 1
+            botIndex = newBlock + totalProcedureSize
+            while (totalSquishRem > 0):
+                print("BLAH1: ", totalTopSquish, totalBotSquish, newBlock, squishIndex, totalSquishRem)
                 prevBlocksEmpty = 0
-                totalTopSquish = totalProcedureSize + squishAddTop
-                totalBotSquish = squishAddBot
-                topIndex = 0
-                print("BLAH: ", totalTopSquish, squishAddTop, totalBotSquish, squishAddBot, squishIndex)
                 if totalTopSquish > 0:
-                    for i in range(squishIndex, -1, -1):
+                    for i in range(topIndex, -1, -1):
                         if (self.schedule[i].isFull == False):
                             prevBlocksEmpty += 1
 
@@ -269,40 +293,53 @@ class GraphicsScene(QGraphicsScene):
                             topIndex = i
                             #self.squish(i, squishIndex)
                             break
-                    
+                    totalSquishRem -= prevBlocksEmpty
                     if (prevBlocksEmpty != totalTopSquish):
                         #self.squish(0, squishIndex)
                         newBlock += totalTopSquish - prevBlocksEmpty
-                        totalBotSquish += totalTopSquish - prevBlocksEmpty
+                        # squishRt = self.squishHelper(newBlock, totalProcedureSize)
+                        # totalTopSquish = squishRt[0]
+                        # totalBotSquish = squishRt[1]
+                        # squishIndex = squishRt[2]
+                        # totalSquishRem = totalTopSquish + totalBotSquish
+                        topIndex = 0
+                        squishIndex = newBlock
+                        totalTopSquish = 0
+                        totalBotSquish = 0
+                        for i in range(newBlock, newBlock + totalProcedureSize):
+                            totalBotSquish += 1
+                        totalSquishRem = totalTopSquish + totalBotSquish
                     prevBlocksEmpty = 0
-
+                print("BLAH2: ", totalTopSquish, totalBotSquish, newBlock, squishIndex, totalSquishRem)
                 if totalBotSquish > 0:
 
-                    for i in range(squishIndex + 1, len(self.schedule)):
+                    for i in range(botIndex, len(self.schedule)):
                         if (self.schedule[i].isFull == False):
                             prevBlocksEmpty += 1
                         
                         if (prevBlocksEmpty == totalBotSquish):
-                            self.squish(squishIndex + 1, i, False)
+                            #self.squish(squishIndex + 1, i, False)
+                            botIndex = i
                             break
-
+                    totalSquishRem -= prevBlocksEmpty
                     if (prevBlocksEmpty != totalBotSquish):
-                        self.squish(squishIndex + 1, len(self.schedule) - 1, False)
+                        #self.squish(squishIndex + 1, len(self.schedule) - 1, False)
                         newBlock -= totalBotSquish - prevBlocksEmpty
-                        totalTopSquish = totalBotSquish - prevBlocksEmpty
-                        prevBlocksEmpty = 0
-                        for i in range(topIndex - 1, -1, -1):
-                            if (self.schedule[i].isFull == False):
-                                prevBlocksEmpty += 1
-
-                            if (prevBlocksEmpty == totalTopSquish):
-                                #self.squish(i, squishIndex)
-                                topIndex = i
-                                break
+                        # totalTopSquish = squishRt[0]
+                        # totalBotSquish = squishRt[1]
+                        # squishIndex = squishRt[2]
+                        # totalSquishRem = totalTopSquish + totalBotSquish
+                        botIndex = len(self.schedule) - 1
+                        squishIndex = newBlock
+                        totalTopSquish = 0
+                        totalBotSquish = 0
+                        for i in range(newBlock, newBlock + totalProcedureSize):
+                            totalTopSquish += 1
+                        totalSquishRem = totalTopSquish + totalBotSquish
+                    prevBlocksEmpty = 0
                         
-                        if (prevBlocksEmpty != totalTopSquish):
-                            print("NOT ENOUGH SPACE (THIS SHOULD NOT HAPPEN)")
-                self.squish(topIndex, squishIndex)
+            self.squish(topIndex, squishIndex)
+            self.squish(squishIndex, botIndex, False)
 
 
 
@@ -391,6 +428,69 @@ class GraphicsScene(QGraphicsScene):
         except Exception as e:
             print("Could not check for collisions: ", e)
             return True
+        
+    def squishHelper(self, newBlock, totalProcedureSize):
+        conflictCount = 0
+        totalTopSquish = 0
+        totalBotSquish = 0
+        squishIndex = newBlock + (totalProcedureSize // 2) - 1
+        for i in range(totalProcedureSize):
+            if self.schedule[newBlock + i].isFull == True:
+                conflictCount += 1
+                break
+
+        if conflictCount > 0:
+
+            containsBlock = False
+
+            for procedure in self.procedures:
+                if (not procedure.isSelected() and # Find procedures that begin in the anticipated insert size
+                    procedure.data(0) >= newBlock and
+                    procedure.data(0) <= newBlock + totalProcedureSize - 1):
+                    containsBlock = True
+                    if (procedure.data(0) <= newBlock + (totalProcedureSize // 2) - 1 and
+                        procedure.data(0) + procedure.data(1) - 1 >= newBlock + (totalProcedureSize // 2) - 1): # If procedure is completely encapsulated within insert and contains midpoint
+                        if (procedure.data(0) + (procedure.data(1) // 2) - 1 > newBlock + (totalProcedureSize // 2) - 1): # If midpoint of procedure is below midpoint of insert
+                            squishIndex = procedure.data(0) - 1
+                        else:
+                            squishIndex = procedure.data(0) + procedure.data(1) - 1
+
+                    else:                                       # If procedure begins in insert but finishes outside
+                        if (procedure.data(0) <= newBlock + (totalProcedureSize // 2) - 1):
+                            squishIndex = procedure.data(0) - 1
+
+                elif (not procedure.isSelected() and
+                    procedure.data(0) + procedure.data(1) - 1 >= newBlock and
+                    procedure.data(0) + procedure.data(1) - 1 <= newBlock + totalProcedureSize - 1): # Find procedure that ends in insert
+                    containsBlock = True
+                    if (procedure.data(0) + procedure.data(1) - 1 >= newBlock + (totalProcedureSize // 2) - 1): # If procedure ends past insert midpoint
+                        squishIndex = procedure.data(0) + procedure.data(1) - 1
+            
+            if not containsBlock:
+                for procedure in self.procedures:
+                    if (not procedure.isSelected() and # Find a procedure that completely encapsulates moved procedure and choose to either position above or below
+                        procedure.data(0) + procedure.data(1) - 1 > newBlock + totalProcedureSize - 1 and
+                        procedure.data(0) < newBlock):
+                        if (newBlock > (procedure.data(0) + (procedure.data(1) // 2) - 1)): # Try to fit insert below at index
+                            #squishAddTop += (procedure.data(1) + procedure.data(1) - newBlock)
+                            squishIndex = procedure.data(0) + procedure.data(1) - 1
+                            totalTopSquish = (procedure.data(0) + procedure.data(1) - newBlock)
+                        else:                                                               # Try to fit insert above at index
+                            #squishAddBot += (newBlock + totalProcedureSize - procedure.data(0))
+                            squishIndex = procedure.data(0) - 1
+                            totalBotSquish = (newBlock + totalProcedureSize - procedure.data(0))
+                        break
+            else:
+
+                # Check for spaces and squish above and below
+                
+                for i in range(newBlock, squishIndex + 1):
+                    if (self.schedule[i].isFull == True):
+                        totalTopSquish += 1
+                for i in range(squishIndex + 1, newBlock + totalProcedureSize):
+                    if (self.schedule[i].isFull == True):
+                        totalBotSquish += 1
+        return [totalTopSquish, totalBotSquish, squishIndex]
         
     def squish(self, startingIndex, endingIndex, squishUp = True):
         print("squishing")
