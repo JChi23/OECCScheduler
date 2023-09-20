@@ -1,56 +1,30 @@
-5,Michael4,6
-0
-0
-5,Patient4,6
-0
-3,Patient6,4
-3,okoko6,4
-0
-3,TestName5,4
-3,Test25,4
-5,Patient4,6
-3,jj6,4
-3,Patient5,4
-0
-0
+5,M. RYMER,6
+3,C. YETT,4
+3,D. WARFORD,4
+2,Phone Call,4
+4,L. KOUSAIE,5
+3,S. REINHART,4
+3,J. GOOD,4
+5,R. UHL,6
+3,M. BRUNELLO,4
+5,A. FLYNN,6
+4,D. WOODFORD,5
+3,L. HAMPTON,4
+3,B. FRY,4
+4,S. SHRIVER,5
+3,G. MORRING,4
+5,C. MOSES,6
 1,Break,8
-0
-0
-3,Patient,4
-0
-0
-0
-5,Patient4,6
-4,Patient,5
-4,Break,5
-0
-0
-0
-5,Patient4,6
-0
-0
-2,Patient,13
-0
-0
-0
-0
-0
-0
-0
-0
-0
-0
-0
-0
-0
-0
-0
-0
-0
-0
-0
-0
-0
+4,G. CHAREK,5
+3,T. PALKO,4
+5,R. IVEY,6
+3,J. SWANEY,4
+3,A. WOYTKO,4
+3,J. WILD,4
+3,M. HANNAH,4
+3,S. MAYES,4
+3,L. MEADOWS,4
+3,J. CALDWELL,4
 0
 0
 0

@@ -1,5 +1,10 @@
-# OECCScheduler v. 3.5
+# OECCScheduler v. 4.0
 A PyQt Surgery Scheduler for MVP
+
+v. 4.0
+- Completely overhauled procedure movement to now auto shift existing procedures upon drag and drop
+- Added 'Squish' functionality to remove whitespace
+- Increased robustness of file reading
 
 v. 3.5
 - Added additional procedure categories

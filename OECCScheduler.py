@@ -341,12 +341,45 @@ class Window(QWidget):
             print(dataframe1.max_row, dataframe1.max_column)
             # Iterate the loop to read the cell values
             colTime = 0
-            colFirstName = 2
-            colLastName = 3
-            colIOL = 5
-            colProcedure = 8
-            rowFirst = 3
+            # colFirstName = 2
+            # colLastName = 3
+            # colIOL = 5
+            # colProcedure = 8
+            # rowFirst = 3
+            colFirstName = 0
+            colLastName = 0
+            colIOL = 0
+            colProcedure = 0
+            rowFirst = -1
+            rowCount = 1
             #TODO: Add more robustness for detecting name & procedure
+            for row in dataframe1.iter_rows(min_row=1, max_col=4, max_row=30):
+                for cell in row:
+                    if cell.value is not None:
+                        val = cell.value.lower()
+                        if "time" in val:
+                            rowFirst = rowCount + 1
+                            break
+                if rowFirst != -1:
+                    break
+                else:
+                    rowCount += 1
+            
+            for row in dataframe1.iter_rows(rowCount, rowCount):
+                count = 0
+                for cell in row:
+                    if cell.value is not None:
+                        val = cell.value.lower()
+                        
+                        if "first" in val:
+                            colFirstName = count
+                        elif "last" in val:
+                            colLastName = count
+                        elif "primary iol" in val:
+                            colIOL = count
+                        elif "special notes" in val:
+                            colProcedure = count
+                    count += 1
        
             try:
 
@@ -423,6 +456,7 @@ class Window(QWidget):
                         # Define the pen (line)
                         pen = QPen(Qt.GlobalColor.black)
                         newBlock.setPen(pen)
+                        self.scene.procedures.append(newBlock)
                         self.scene.addItem(newBlock)
                         try:
                             for i in range(int(self.blockTimes[blockType] * 4)):
@@ -439,8 +473,8 @@ class Window(QWidget):
                         
 
             except Exception as e:
-                print("Could not read schedule")
-                print(e)
+                print("Could not read schedule", e)
+                
 
 
 
