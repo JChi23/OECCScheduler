@@ -254,9 +254,13 @@ class Window(QWidget):
         openFile.clicked.connect(self.openFile)
         vbox.addWidget(openFile)
 
-        reset = QPushButton("Reset")
-        reset.clicked.connect(self.darkenFull)
-        vbox.addWidget(reset)
+        # reset = QPushButton("Reset")
+        # reset.clicked.connect(self.darkenFull)
+        # vbox.addWidget(reset)
+
+        squish = QPushButton("Collapse")
+        squish.clicked.connect(self.squish)
+        vbox.addWidget(squish)
 
         save = QPushButton("Save")
         save.clicked.connect(self.save)
@@ -489,6 +493,11 @@ class Window(QWidget):
 
             #     data = f.read()
             #     print(data)
+    
+    def squish(self):
+        self.scene.squish(0, len(self.scene.schedule) -1 )
+        self.darkenFull()
+        return
 
     def save(self):
         """ Save current schedule to SavedSchedule.txt (does not include break) """
