@@ -53,8 +53,9 @@ class GraphicsScene(QGraphicsScene):
 
         multiItemGuard = self.itemAt(event.scenePos().x(), event.scenePos().y(), QTransform())
         multiItemParent = multiItemGuard
-        while(multiItemParent.parentItem()):
-            multiItemParent = multiItemParent.parentItem()
+        if multiItemParent is not None:
+            while(multiItemParent.parentItem()):
+                multiItemParent = multiItemParent.parentItem()
         if multiItemParent and multiItemParent.isSelected():
             self.allowDeselect = True
 

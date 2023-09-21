@@ -1,0 +1,23 @@
+pyinstaller —name=“Surgery Scheduler” —windowed —icon=“doc.icns” —add-data=“resources:resources” Main.py 
+
+^packaging
+
+create-dmg \
+    --volname "Surgery Simulator" \
+    --volicon "doc.icns" \
+    --window-pos 200 120 \
+    --window-size 600 300 \
+    --icon-size 100 \
+    --icon "Surgery Scheduler.app" 175 120 \
+    --hide-extension "Surgery Scheduler.app" \
+    --app-drop-link 425 120 \
+    "dist/Surgery Scheduler.dmg" \
+    "dist/dmg"
+
+^dmg
+
+sudo spctl --master-disable
+
+^run software from anywhere
+
+-requires numpy, pyqt6, openpyxl
