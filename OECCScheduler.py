@@ -112,9 +112,11 @@ class Window(QWidget):
                 blockSegBox.setData(4, 0)           # Set 4 to be identifier for a block segment
                 # blockSegBox.setData(20, textHour)   # Set 20 to represent the hour of the block
                 # blockSegBox.setData(21, self.blockMinutes[startMinute][j])  # Set 21 to represent the minutes of the block
-                blockSegBoxText = QGraphicsTextItem(str(i *4 + j), blockSegBox)
-                blockSegBoxText.setPos(140, -4)
-                blockSegBoxText.setFont(QFont("Helvetica", 6))
+                
+                # blockSegBoxText = QGraphicsTextItem(str(i *4 + j), blockSegBox)   #UTILITY NUMBERING OF BOXES
+                # blockSegBoxText.setPos(140, -4)
+                # blockSegBoxText.setFont(QFont("Helvetica", 6))
+                
                 self.scene.addItem(blockSegBox)
                 self.scene.schedule.append(BlockSegment(i * 4 + j, (self.blockSize * i) + ((self.blockSize / 4) * j),
                                                         textHour + ":" + self.blockBeginMinutes[startMinute][j],
@@ -233,11 +235,14 @@ class Window(QWidget):
         setBlock.addItems(["Custom", "Break", "Regular", "Laser", "Premium", "Trabeculectomy", 
                            "Vivity", "Toric/ORA", "Goniotomy", "Micropulse", "Canaloplasty", "Stent",
                            "Shunt", "PanOptix", "XEN"])
+        setBlock.setCurrentIndex(2)
         setBlock.currentTextChanged.connect(self.text_changed)
         vbox.addWidget(setBlock)
 
         self.customLength = QDoubleSpinBox()
         self.customLength.setMinimum(0.25)
+        self.customLength.setValue(1.00)
+        self.customLength.setSingleStep(0.25)
         self.customLength.valueChanged.connect(self.changeCustomLength)
         vbox.addWidget(self.customLength)
 
@@ -448,9 +453,9 @@ class Window(QWidget):
                             print("There was an issue populating times")
 
                         if customLength == -1:
-                            newBlock = GraphicsRectItem(0, 0, 100, self.blockSize * self.blockTimes[blockType], timeText, name)
+                            newBlock = GraphicsRectItem(0, 0, 100, self.blockSize, self.blockTimes[blockType], timeText, name, blockType)
                         else:
-                            newBlock = GraphicsRectItem(0, 0, 100, self.blockSize * customLength, timeText, name)
+                            newBlock = GraphicsRectItem(0, 0, 100, self.blockSize, customLength, timeText, name, blockType)
                         newBlock.setBrush(QBrush(self.blockColors[blockType]))
                         newBlock.setPos(80, firstY)
                         newBlock.setData(0, firstEmpty)                                     # id of first block segment that rect occupies
@@ -534,14 +539,14 @@ class Window(QWidget):
 
         #print("Procedures: ", len(self.scene.procedures))
 
-        for item in self.scene.items():
-            if item.data(4) is not None:
-                if self.scene.schedule[item.data(0)].isFull == True:
-                    item.setBrush(QColor(0, 0, 0, 125))
-                    item.update()
-                else: 
-                    item.setBrush(QColor(0, 0, 0, 0))
-                    item.update()
+        # for item in self.scene.items():
+        #     if item.data(4) is not None:
+        #         if self.scene.schedule[item.data(0)].isFull == True:
+        #             item.setBrush(QColor(0, 0, 0, 125))
+        #             item.update()
+        #         else: 
+        #             item.setBrush(QColor(0, 0, 0, 0))
+        #             item.update()
         return
 
     
@@ -599,8 +604,14 @@ class Window(QWidget):
             rect.setData(1, int(blockLength * 4))     # number of segments that rect occupies
             rect.setData(2, ProcedureDicts.procedureIDs[blockType])   # identifier for graphics to tell that this is a rect
             
-            rectText = QGraphicsTextItem(name, rect)
+            timeFontSize = 10
+            nameFontSize = 13
+            if blockType == "Break":
+                rectText = QGraphicsTextItem("Break", rect)
+            else:
+                rectText = QGraphicsTextItem(self.blockName, rect)
             rectText.setData(3, 1)              # identifier for graphics to tell that this is block text
+
 
             timeRect = QGraphicsRectItem(100, 0, 40, self.blockSize * blockLength, rect)
             timeRect.setBrush(QColor(255, 255, 255, 255))
@@ -615,9 +626,25 @@ class Window(QWidget):
 
             timeRectText = QGraphicsTextItem(timeText, rect)
             timeRectText.setX(100)
-            timeRectText.setFont(QFont("Helvetica", 10))
             timeRectText.setTextWidth(50)
             timeRectText.setData(3, 2)              # identifier for graphics to tell that this is block time text
+
+            if blockType == "Custom":
+                if blockLength == .75:
+                    timeFontSize = 8
+                    timeRectText.setY(-2)
+                elif blockLength == .5:
+                    timeFontSize = 6
+                    nameFontSize = 10
+                    rectText.setY(-2)
+                    timeRectText.setX(98)
+                elif blockLength == .25:
+                    timeFontSize = 4
+                    nameFontSize = 5
+                    rectText.setY(-3)
+                    timeRectText.setY(-2)
+            rectText.setFont(QFont("Helvetica", nameFontSize))
+            timeRectText.setFont(QFont("Helvetica", timeFontSize))
             
 
             # Define the pen (line)
@@ -674,14 +701,18 @@ class Window(QWidget):
             rect.setData(1, int(self.blockTimes[blockType] * 4))     # number of segments that rect occupies
             rect.setData(2, ProcedureDicts.procedureIDs[blockType])   # identifier for graphics to tell that this is a rect
 
-            rectText = QGraphicsTextItem(self.blockName, rect)
+            timeFontSize = 10
+            nameFontSize = 13
+            if blockType == "Break":
+                rectText = QGraphicsTextItem("Break", rect)
+            else:
+                rectText = QGraphicsTextItem(self.blockName, rect)
             rectText.setData(3, 1)              # identifier for graphics to tell that this is block text
 
             #print("FONT")
             curFontSize = rectText.font().pointSize()
             #print(curFontSize)
             #print(rectText.font().pixelSize())
-            rectText.setFont(QFont("Helvetica", 13))
             #print(rectText.font().pointSize())
 
             timeRect = QGraphicsRectItem(100, 0, 40, self.blockSize * self.blockTimes[blockType], rect)
@@ -697,9 +728,25 @@ class Window(QWidget):
 
             timeRectText = QGraphicsTextItem(timeText, rect)
             timeRectText.setX(100)
-            timeRectText.setFont(QFont("Helvetica", 10))
             timeRectText.setTextWidth(50)
             timeRectText.setData(3, 2)              # identifier for graphics to tell that this is block time text
+
+            if blockType == "Custom":
+                if self.blockTimes["Custom"] == .75:
+                    timeFontSize = 8
+                    timeRectText.setY(-2)
+                elif self.blockTimes["Custom"] == .5:
+                    timeFontSize = 6
+                    nameFontSize = 10
+                    rectText.setY(-2)
+                    timeRectText.setX(98)
+                elif self.blockTimes["Custom"] == .25:
+                    timeFontSize = 4
+                    nameFontSize = 5
+                    rectText.setY(-3)
+                    timeRectText.setY(-2)
+            rectText.setFont(QFont("Helvetica", nameFontSize))
+            timeRectText.setFont(QFont("Helvetica", timeFontSize))
 
             # Define the pen (line)
             pen = QPen(Qt.GlobalColor.black)
@@ -730,7 +777,7 @@ class Window(QWidget):
         self.blockType = s
     
     def changeCustomLength(self, i):
-        print("YUH", i)
+        #print("YUH", i)
         self.blockTimes["Custom"] = i
         self.customBlockLength = i
 

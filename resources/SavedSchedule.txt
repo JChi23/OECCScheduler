@@ -1,7 +1,7 @@
 5,M. RYMER,6
 3,C. YETT,4
+3,M. HANNAH,4
 3,D. WARFORD,4
-2,Phone Call,4
 4,L. KOUSAIE,5
 3,S. REINHART,4
 3,J. GOOD,4
@@ -14,23 +14,20 @@
 4,S. SHRIVER,5
 3,G. MORRING,4
 5,C. MOSES,6
-1,Break,8
-4,G. CHAREK,5
 3,T. PALKO,4
 5,R. IVEY,6
 3,J. SWANEY,4
-3,A. WOYTKO,4
 3,J. WILD,4
-3,M. HANNAH,4
+3,A. WOYTKO,4
 3,S. MAYES,4
 3,L. MEADOWS,4
+4,G. CHAREK,5
 3,J. CALDWELL,4
-0
-0
-0
-0
-0
-0
+1,Break,8
+2,Patient,4
+2,Patient,3
+2,Patient,2
+2,Patient,1
 0
 0
 0

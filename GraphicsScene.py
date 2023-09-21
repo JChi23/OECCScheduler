@@ -155,7 +155,7 @@ class GraphicsScene(QGraphicsScene):
 
     def mouseReleaseEvent(self, event):
         """ Add overloaded functionality to correctly snap and place time blocks when mouse released """
-        print("HELP: ", self.allowMovement)
+        #print("HELP: ", self.allowMovement)
         items = self.selectedItems()
         super().mouseReleaseEvent(event)
 
@@ -176,7 +176,7 @@ class GraphicsScene(QGraphicsScene):
             for item in items:          # Get total block size of blocks being moved
                 if item.data(2) is not None:
                     totalProcedureSize += item.data(1)
-            print("TOTAL SIZE: ", totalProcedureSize)
+            #print("TOTAL SIZE: ", totalProcedureSize)
             newBlock = 0 # Find the desired insertion index of the first block via binary search
 
             lpointer = 0
@@ -212,7 +212,7 @@ class GraphicsScene(QGraphicsScene):
                             rpointer = mpointer - 1
                         else:
                             lpointer = mpointer + 1
-                print("MID: ", mpointer)
+                #print("MID: ", mpointer)
                     
                 newBlock = self.schedule[mpointer].order
                 if newBlock + totalProcedureSize - 1 >= len(self.schedule):
@@ -304,7 +304,7 @@ class GraphicsScene(QGraphicsScene):
                 topIndex = newBlock - 1
                 botIndex = newBlock + totalProcedureSize
                 while (totalSquishRem > 0):
-                    print("BLAH1: ", totalTopSquish, totalBotSquish, newBlock, squishIndex, totalSquishRem)
+                    #print("BLAH1: ", totalTopSquish, totalBotSquish, newBlock, squishIndex, totalSquishRem)
                     prevBlocksEmpty = 0
                     if totalTopSquish > 0:
                         for i in range(newBlock - 1, -1, -1):
@@ -348,7 +348,7 @@ class GraphicsScene(QGraphicsScene):
                                     totalBotSquish += 1
                             totalSquishRem = totalTopSquish + totalBotSquish
                         prevBlocksEmpty = 0
-                    print("BLAH2: ", totalTopSquish, totalBotSquish, newBlock, squishIndex, totalSquishRem)
+                    #print("BLAH2: ", totalTopSquish, totalBotSquish, newBlock, squishIndex, totalSquishRem)
                     if totalBotSquish > 0:
 
                         for i in range(newBlock + totalProcedureSize, len(self.schedule)):
@@ -377,7 +377,7 @@ class GraphicsScene(QGraphicsScene):
                                     totalTopSquish += 1
                             totalSquishRem = totalTopSquish + totalBotSquish
                         prevBlocksEmpty = 0
-                print("BLAH3: ", totalTopSquish, totalBotSquish, newBlock, squishIndex, totalSquishRem)
+                #print("BLAH3: ", totalTopSquish, totalBotSquish, newBlock, squishIndex, totalSquishRem)
                 self.squish(topIndex, squishIndex)
                 self.squish(squishIndex + 1, botIndex, False)
 
