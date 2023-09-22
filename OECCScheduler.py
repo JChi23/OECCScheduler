@@ -609,7 +609,7 @@ class Window(QWidget):
             if blockType == "Break":
                 rectText = QGraphicsTextItem("Break", rect)
             else:
-                rectText = QGraphicsTextItem(self.blockName, rect)
+                rectText = QGraphicsTextItem(name, rect)
             rectText.setData(3, 1)              # identifier for graphics to tell that this is block text
 
 
