@@ -1,5 +1,12 @@
-# OECCScheduler v. 4.0
+# OECCScheduler v. 4.1
 A PyQt Surgery Scheduler for MVP
+
+v. 4.1
+- Increased UI Scale for readibility
+- Added functionality for downloading schedule as an image
+- Time and names will now correctly scale for smaller custom blocks
+- Added additional column with details regarding procedure type
+- Fixed bug where you could not move blocks from columns other than the first
 
 v. 4.0
 - Completely overhauled procedure movement to now auto shift existing procedures upon drag and drop
