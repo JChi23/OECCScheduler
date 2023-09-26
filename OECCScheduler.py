@@ -176,10 +176,10 @@ class Window(QWidget):
         if breakFlag:
             # Add breaktime if no saved data
             breakBlockLength = 2
-            breakStart = 19
+            breakStart = 18 * self.numSubBlocks
             breakBlock = GraphicsRectItem(0, 0, self.blockWidth, self.blockSize * breakBlockLength, self.timeWidth, self.typeWidth,
                                           self.getTimeText(breakStart, breakStart + int(self.numSubBlocks * breakBlockLength) - 1), 
-                                          "Break", "Break", QBrush(BlockColors.BREAK.value))
+                                          "Break", "Break", QBrush(BlockColors.BREAK.value), int(self.numSubBlocks * breakBlockLength))
             breakBlock.setPos(self.timeBoxWidth, self.scene.schedule[breakStart].y)
             breakBlock.setData(0, breakStart)                                     # id of first block segment that break occupies
             breakBlock.setData(1, breakBlockLength * self.numSubBlocks)                         # number of segments that break occupies
@@ -562,6 +562,7 @@ class Window(QWidget):
             print("There was an issue:", e)
 
     def findFirstEmpty(self, segLength, startIndex = 0, endIndex = 1000000):
+        """ Find the first empty section from the startIndex to endIndex (incl.) of length segLength """
         endIndex = min(len(self.scene.schedule), endIndex + 1)
         for i in range(startIndex, endIndex):
             try:
@@ -592,7 +593,7 @@ class Window(QWidget):
         self.blockType = s
     
     def changeCustomLength(self, i):
-        #print("YUH", i)
+        """ Change the stored custom length type when the appropriate widget is updated """
         self.blockTimes["Custom"] = i
         self.customBlockLength = i
 

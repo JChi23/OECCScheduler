@@ -23,6 +23,7 @@ class GraphicsScene(QGraphicsScene):
     allowMovement = False
     count = 0
     pressBegan = False
+    allowBlockMultiSelect = False
     allowMultiSelect = False
 
     def __init__(self, parent=None):
@@ -35,11 +36,16 @@ class GraphicsScene(QGraphicsScene):
     def keyPressEvent(self, event: QKeyEvent) -> None:
         super().keyPressEvent(event)
         if event.key() == Qt.Key.Key_Shift.value:
+            self.allowBlockMultiSelect = True
+        elif event.key() == Qt.Key.Key_Control.value:
             self.allowMultiSelect = True
+
 
     def keyReleaseEvent(self, event: QKeyEvent) -> None:
         super().keyReleaseEvent(event)
         if event.key() == Qt.Key.Key_Shift.value:
+            self.allowBlockMultiSelect = False
+        elif event.key() == Qt.Key.Key_Control.value:
             self.allowMultiSelect = False
 
     def mousePressEvent(self, event):
@@ -51,16 +57,21 @@ class GraphicsScene(QGraphicsScene):
         self.pressBegan = True
         self.count = 0
 
+        # Find the topmost parent item of clicked position
+        oldItems = self.selectedItems()
+
         multiItemGuard = self.itemAt(event.scenePos().x(), event.scenePos().y(), QTransform())
         multiItemParent = multiItemGuard
         if multiItemParent is not None:
             while(multiItemParent.parentItem()):
                 multiItemParent = multiItemParent.parentItem()
-        if multiItemParent and multiItemParent.isSelected():
+        if multiItemParent and multiItemParent.isSelected():    # If clicked on parent after selection, allow for parent deselection
             self.allowDeselect = True
-
-        oldItems = self.selectedItems()
-
+        else:
+            self.parent().changeInputPatientName("Patient")
+            if not self.allowBlockMultiSelect and not self.allowMultiSelect:    # If not trying to multi-select and block not already selected, deselect all
+                for item in oldItems:
+                    item.setSelected(False)
 
         super().mousePressEvent(event)
 
@@ -69,14 +80,14 @@ class GraphicsScene(QGraphicsScene):
 
         items = self.selectedItems()
 
-        if self.allowMultiSelect:
+        if self.allowBlockMultiSelect:       # If multi-block-select is activated, set all parent blocks in between to selected
             try:
                 tempCombined = oldItems + items
                 tempCombined.sort(key=lambda e: e.data(0))
                 earliest = tempCombined[0].data(0)
                 latest = tempCombined[len(tempCombined) - 1].data(0)
 
-                for item in self.items():
+                for item in self.procedures:
                     if (item.data(2) is not None and
                         item.data(0) >= earliest and
                         item.data(0) <= latest):
@@ -88,7 +99,7 @@ class GraphicsScene(QGraphicsScene):
                 print("Unable to get ordering from items")
 
 
-        for item in oldItems:   # Change opacity of old selected items to opaque
+        for item in oldItems:   # Change opacity of old selected items to opaque if no longer selected
             try:
                 if item not in items:
                     item.setOpacity(1)
@@ -96,29 +107,32 @@ class GraphicsScene(QGraphicsScene):
             except:
                 print("there was an error with updating opacity")
         
-        for item in items:  # Change patient names and block fullness
-            item.setZValue(6.0)
+        for item in items:  # Change patient name input correspondingly and block fullness for selected items
+            if item.parentItem():
+                item.setSelected(False)
+            else:
+                item.setZValue(6.0)
 
-            item.setOpacity(0.5)
-            item.update()
+                item.setOpacity(0.5)
+                item.update()
 
-            if item.data(1) is not None:
-                if not self.blockSelected:
-                    self.blockSelected = True
-                    try:
-                        self.parent().changeNameChange(True)
-                    except:
-                        print("could not enable parent button")
-                for i in range(item.data(1)):
-                        self.schedule[item.data(0) + i].isFull = False
-            
-            if item.data(2) is not None:
-                subItems = item.childItems()
-                for subItem in subItems:
-                    if subItem.data(3) is not None and subItem.data(3) == 1:
-                        self.parent().changeInputPatientName(subItem.toPlainText())
+                if item.data(2) is not None:    
+                    if not self.blockSelected:
+                        self.blockSelected = True
+                        try:
+                            self.parent().changeNameChange(True)
+                        except:
+                            print("could not enable parent button")
+                    for i in range(item.data(1)):
+                            self.schedule[item.data(0) + i].isFull = False
+                
+                #if item.data(2) is not None:
+                    subItems = item.childItems()
+                    for subItem in subItems:
+                        if subItem.data(3) is not None and subItem.data(3) == 1:
+                            self.parent().changeInputPatientName(subItem.toPlainText())
         
-        if not self.blockSelected:
+        if not self.blockSelected:  # If a block is not selected, disable the change name button
             try:
                 self.parent().changeNameChange()
             except:
@@ -387,7 +401,7 @@ class GraphicsScene(QGraphicsScene):
 
 
             except Exception as e:
-                print("there was an issue with block collision", e)
+                print("There was an issue with block collision:", e)
                 
             try:
                 for item in items:

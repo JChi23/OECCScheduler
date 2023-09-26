@@ -40,6 +40,25 @@ procedureList = [ #What the 2 key value is set to for each procedure block
     "Trimox",
 ]
 
+procedureDesc = {
+    "Regular" : "Regular Cataract",
+    "Laser" : "Laser Cataract",
+    "Premium" : 1.5,
+    "Custom" :  1,
+    "Break" : 2,
+    "Trabeculectomy" : 3, 
+    "Vivity" : 1.5,
+    "Toric/ORA" : "Laser Cataract",
+    "Goniotomy" : 1.25,
+    "Micropulse" : 1.25,
+    "Canaloplasty" : 1.25,
+    "Stent" : 1.25,
+    "Shunt" : 4,
+    "PanOptix" : 1.5,
+    "XEN" : 3,
+    "Trimox" : 1,
+}
+
 blockTimes = {
     "Regular" : 1,
     "Laser" : 1.25,

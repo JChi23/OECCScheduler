@@ -1,24 +1,12 @@
 import typing
 
 from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QPen, QColor, QIcon, QFont
+from PyQt6.QtGui import QPen, QColor, QFont
 from PyQt6.QtWidgets import (
-    QComboBox,
-    QFileDialog,
-    QGraphicsItemGroup,
-    QDoubleSpinBox,
-    QGraphicsItem,
     QGraphicsRectItem,
     QGraphicsTextItem,
-    QGraphicsView,
-    QHBoxLayout,
-    QPushButton,
-    QLineEdit,
-    QVBoxLayout,
-    QWidget,
-
+    QGraphicsItem,
 )      
-# THINK ABOUT INCLUDING CREATION OF TIME TEX HERE OR CREATE A SEPARATE METHOD FOR IT
 
 class GraphicsRectItem(QGraphicsRectItem):
 
@@ -43,6 +31,7 @@ class GraphicsRectItem(QGraphicsRectItem):
         typeRect.setBrush(QColor(255, 255, 255, 255))
         typeRect.setPen(QPen(Qt.GlobalColor.black))
         typeRect.setBrush(blockColor)
+        typeRect.setFlag(QGraphicsItem.GraphicsItemFlag.ItemIsMovable)
 
         typeRectText = QGraphicsTextItem(blockType, self)
         typeRectText.setX(blockWidth)
@@ -53,6 +42,7 @@ class GraphicsRectItem(QGraphicsRectItem):
         timeRect = QGraphicsRectItem(blockWidth + typeWidth, 0, timeWidth, blockHeight, self)
         timeRect.setBrush(QColor(255, 255, 255, 255))
         timeRect.setPen(QPen(Qt.GlobalColor.black))
+        timeRect.setFlag(QGraphicsItem.GraphicsItemFlag.ItemIsMovable)
 
         timeRectText = QGraphicsTextItem(time, self)
         timeRectText.setX(blockWidth + typeWidth)
