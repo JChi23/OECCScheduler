@@ -20,6 +20,26 @@ procedureIDs = { #What the 2 key value is set to for each procedure block
     "Trimox" : 16,
 }
 
+procedureList = [ #What the 2 key value is set to for each procedure block
+    "Empty",
+    "Break",
+    "Custom",
+    "Regular",
+    "Laser",
+    "Premium",
+    "Trabeculectomy", 
+    "Vivity",
+    "Toric/ORA",
+    "Goniotomy",
+    "Micropulse",
+    "Canaloplasty",
+    "Stent",
+    "Shunt",
+    "PanOptix",
+    "XEN",
+    "Trimox",
+]
+
 blockTimes = {
     "Regular" : 1,
     "Laser" : 1.25,

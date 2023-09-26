@@ -97,6 +97,7 @@ class GraphicsScene(QGraphicsScene):
                 print("there was an error with updating opacity")
         
         for item in items:  # Change patient names and block fullness
+            item.setZValue(6.0)
 
             item.setOpacity(0.5)
             item.update()
@@ -167,6 +168,7 @@ class GraphicsScene(QGraphicsScene):
 
         if not self.allowMovement:
             for item in items:
+                item.setZValue(5.0)
                 if not item.isSelected():
                         item.setSelected(True)
                 self.move(item, item.data(0), item.data(0), False)
@@ -389,6 +391,7 @@ class GraphicsScene(QGraphicsScene):
                 
             try:
                 for item in items:
+                    item.setZValue(5.0)
 
                     if not item.isSelected():
                         item.setSelected(True)
