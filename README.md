@@ -37,10 +37,11 @@ v. 1.0
 - User can save current schedule between sessions
 - User can clear schedule except for a static break block
 
+- Icon images taken from Google Fonts
 
 Known issues:
 - There is currently an issue using PyInstaller with PyQt6 that causes a segmentation fault in the bundled app after packaging on MacOS Ventura
     - Remedied by using Pyinstaller 4.8 & PyQt6 6.3.0 on MacOS Catalina
 - Issue with multi movement up bugging out and not remapping correctly (Unknown how to reproduce)
 - Names can overflow blocks
-- Clicking between blocks may cause multiple blocks to be selected
+- Clicking between blocks may cause multiple blocks to be unintentionally selected
