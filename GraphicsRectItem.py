@@ -23,7 +23,10 @@ class GraphicsRectItem(QGraphicsRectItem):
         if blockType == "Break":
             rectText = QGraphicsTextItem("Break", self)
         else:
-            rectText = QGraphicsTextItem(name, self)
+            if len(name) < 1:
+                rectText = QGraphicsTextItem("Patient", self)
+            else:
+                rectText = QGraphicsTextItem(name, self)
         rectText.setData(3, 1)              # identifier for graphics to tell that this is block text
 
         # Add type name

@@ -32,7 +32,9 @@ from PyQt6.QtWidgets import (
     QLineEdit,
     QVBoxLayout,
     QWidget,
-
+    QLabel,
+    QGroupBox,
+    QFormLayout,
 )       
 
 class Window(QWidget):
@@ -49,6 +51,7 @@ class Window(QWidget):
     currentCaseCount = 0
     blockType = "Regular"
     blockName = "Patient"
+    blockModName = "Patient"
     blockTimeCustom = 1
     customBlockLength = 1.00
     blockTimes = ProcedureDicts.blockTimes
@@ -196,18 +199,17 @@ class Window(QWidget):
         # Define our layout & add functionality buttons
         vbox = QVBoxLayout()
 
-        self.patientName = QLineEdit("Patient Name")
+            # INSERT LAYOUT BOX
+
+        self.patientName = QLineEdit()
+        self.patientName.setPlaceholderText("Patient Name")
         self.patientName.textChanged.connect(self.name_changed)
-        vbox.addWidget(self.patientName)
+        #vbox.addWidget(self.patientName)
 
-        self.changeName = QPushButton("Change Name")
-        self.changeName.setEnabled(False)
-        self.changeName.clicked.connect(self.changePatientName)
-        vbox.addWidget(self.changeName)
-
-        insert = QPushButton("Insert Procedure")
+        insert = QPushButton("Insert")
+        insert.setIcon(QIcon(os.path.join(self.baseDir, "icons", "insert.png")))
         insert.clicked.connect(self.insert)
-        vbox.addWidget(insert)
+        #vbox.addWidget(insert)
 
         setBlock = QComboBox()
         setBlock.addItems(["Custom", "Break", "Regular", "Laser", "Premium", "Trabeculectomy", 
@@ -215,42 +217,87 @@ class Window(QWidget):
                            "Shunt", "PanOptix", "XEN"])
         setBlock.setCurrentIndex(2)
         setBlock.currentTextChanged.connect(self.text_changed)
-        vbox.addWidget(setBlock)
+        #vbox.addWidget(setBlock)
 
         self.customLength = QDoubleSpinBox()
         self.customLength.setMinimum(0.25)
         self.customLength.setValue(1.00)
         self.customLength.setSingleStep(0.25)
+        self.customLength.setEnabled(False)
         self.customLength.valueChanged.connect(self.changeCustomLength)
-        vbox.addWidget(self.customLength)
+        customLengthLabel = QLabel("Length:")
+        customLengthLabel.setBuddy(self.customLength)
+        #vbox.addWidget(self.customLength)
 
-        delete = QPushButton("Delete")
-        #delete.setIcon(QIcon(os.path.join(self.baseDir, "icons", "lightning.png")))
-        delete.clicked.connect(self.delete)
-        vbox.addWidget(delete)
+        insertGroupBox = QGroupBox("Insert Procedure")
+        insertGroupLayout = QFormLayout()
+        insertGroupLayout.addRow(self.patientName)
+        insertGroupLayout.addRow(QLabel("Procedure:"), setBlock)
+        insertGroupLayout.addRow(customLengthLabel, self.customLength)
+        insertGroupLayout.addRow(insert)
+        insertGroupLayout.setSizeConstraint(QFormLayout.SizeConstraint.SetFixedSize)
+        insertGroupBox.setLayout(insertGroupLayout)
+        vbox.addWidget(insertGroupBox)
+
+            # END INSERT LAYOUT BOX
+            # MODIFY LAYOUT BOX
+
+        self.modifyPatientName = QLineEdit()
+        self.modifyPatientName.setPlaceholderText("Patient Name")
+        self.modifyPatientName.textChanged.connect(self.nameModified)
+
+        self.deleteBlock = QPushButton("Delete")
+        self.deleteBlock.setEnabled(False)
+        self.deleteBlock.setIcon(QIcon(os.path.join(self.baseDir, "icons", "delete.png")))
+        self.deleteBlock.clicked.connect(self.delete)
+        #vbox.addWidget(delete)
+
+        self.changeName = QPushButton("Change Name")
+        self.changeName.setEnabled(False)
+        self.changeName.setIcon(QIcon(os.path.join(self.baseDir, "icons", "changeName.png")))
+        self.changeName.clicked.connect(self.changePatientName)
+        #vbox.addWidget(self.changeName)
+
+        modifyGroupBox = QGroupBox("Modify Procedure")
+        modifyGroupLayout = QFormLayout()
+        modifyGroupLayout.addRow(self.modifyPatientName)
+        modifyGroupLayout.addRow(self.changeName, self.deleteBlock)
+        #modifyGroupLayout.addRow(self.deleteBlock)
+        modifyGroupLayout.setSizeConstraint(QFormLayout.SizeConstraint.SetFixedSize)
+        modifyGroupBox.setLayout(modifyGroupLayout)
+        vbox.addWidget(modifyGroupBox)
+
+            # END MODIFY LAYOUT BOX
 
         clear = QPushButton("Clear")
+        clear.setIcon(QIcon(os.path.join(self.baseDir, "icons", "clear.png")))
         clear.clicked.connect(self.clear)
         vbox.addWidget(clear)
 
         openFile = QPushButton("Open")
+        openFile.setIcon(QIcon(os.path.join(self.baseDir, "icons", "open.png")))
         openFile.clicked.connect(self.openFile)
         vbox.addWidget(openFile)
 
         # UTILITY BUTTON
         reset = QPushButton("Reset")
+        reset.setIcon(QIcon(os.path.join(self.baseDir, "icons", "reset.png")))
         reset.clicked.connect(self.darkenFull)
         vbox.addWidget(reset)
+        # UTIL END
 
         squish = QPushButton("Collapse")
+        squish.setIcon(QIcon(os.path.join(self.baseDir, "icons", "squish.png")))
         squish.clicked.connect(self.squish)
         vbox.addWidget(squish)
 
         save = QPushButton("Save")
+        save.setIcon(QIcon(os.path.join(self.baseDir, "icons", "save.png")))
         save.clicked.connect(self.save)
         vbox.addWidget(save)
 
         download = QPushButton("Download")
+        download.setIcon(QIcon(os.path.join(self.baseDir, "icons", "download.png")))
         download.clicked.connect(self.download)
         vbox.addWidget(download)
 
@@ -590,6 +637,11 @@ class Window(QWidget):
 
     def text_changed(self, s): # s is a str
         """ Change the stored procedure type when combobox is updated """
+        if (s == "Custom" and not self.customLength.isEnabled()):
+            self.customLength.setEnabled(True)
+        elif (s != "Custom" and self.customLength.isEnabled()):
+            self.customLength.setEnabled(False)
+
         self.blockType = s
     
     def changeCustomLength(self, i):
@@ -598,17 +650,23 @@ class Window(QWidget):
         self.customBlockLength = i
 
     def name_changed(self, s):
-        """ Change the stored patient name when the text box is updated """
+        """ Change the stored patient name to insert when the text box is updated """
         self.blockName = s
+    
+    def nameModified(self, s):
+        """ Change the stored patient name to modify when the text box is updated """
+        self.blockModName = s
     
     def changePatientName(self):
         """ Change the name of the selected block """
-        self.scene.changeName(self.blockName)
+        self.scene.changeName(self.blockModName)
 
     def changeInputPatientName(self, name="Patient"):
-        """ Change the name of the text input widget """
+        """ Change the name of the text input widget for insertion and modification """
         self.patientName.setText(name)
+        self.modifyPatientName.setText(name)
 
     def changeNameChange(self, enable=False):
-        """ Change the change name button on widget """
+        """ Enable/Disable the change name button on widget """
         self.changeName.setEnabled(enable)
+        self.deleteBlock.setEnabled(enable)

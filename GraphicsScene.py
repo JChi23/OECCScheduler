@@ -68,7 +68,7 @@ class GraphicsScene(QGraphicsScene):
         if multiItemParent and multiItemParent.isSelected():    # If clicked on parent after selection, allow for parent deselection
             self.allowDeselect = True
         else:
-            self.parent().changeInputPatientName("Patient")
+            self.parent().changeInputPatientName("")
             if not self.allowBlockMultiSelect and not self.allowMultiSelect:    # If not trying to multi-select and block not already selected, deselect all
                 for item in oldItems:
                     item.setSelected(False)
