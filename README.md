@@ -36,3 +36,4 @@ Known issues:
     - Remedied by using Pyinstaller 4.8 & PyQt6 6.3.0 on MacOS Catalina
 - Issue with multi movement up bugging out and not remapping correctly (Unknown how to reproduce)
 - Names can overflow blocks
+- Clicking between blocks may cause multiple blocks to be selected
