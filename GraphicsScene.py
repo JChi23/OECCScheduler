@@ -1,6 +1,5 @@
 """ Represents custom scene that contains the schedule and inherits from QGraphicsScene """
 
-#from PyQt6 import QtGui
 from PyQt6 import QtGui
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import (
@@ -31,7 +30,6 @@ class GraphicsScene(QGraphicsScene):
     
     def __init__(self, x, y, width, height, parent=None):
         super().__init__(x, y, width, height, parent)
-        #print(Qt.Key.Key_Shift.value)
 
     def keyPressEvent(self, event: QKeyEvent) -> None:
         super().keyPressEvent(event)
@@ -120,13 +118,12 @@ class GraphicsScene(QGraphicsScene):
                     if not self.blockSelected:
                         self.blockSelected = True
                         try:
-                            self.parent().changeNameChange(True)
+                            self.parent().enableNameChange(True)
                         except:
                             print("could not enable parent button")
                     for i in range(item.data(1)):
                             self.schedule[item.data(0) + i].isFull = False
                 
-                #if item.data(2) is not None:
                     subItems = item.childItems()
                     for subItem in subItems:
                         if subItem.data(3) is not None and subItem.data(3) == 1:
@@ -134,7 +131,7 @@ class GraphicsScene(QGraphicsScene):
         
         if not self.blockSelected:  # If a block is not selected, disable the change name button
             try:
-                self.parent().changeNameChange()
+                self.parent().enableNameChange()
             except:
                 print("could not disable parent button")
 
@@ -155,12 +152,6 @@ class GraphicsScene(QGraphicsScene):
         """ Add overloaded functionality to allow for single click selection + deselection """
 
         super().mouseMoveEvent(event)
-        # if self.allowDeselect and self.count >= 10:
-        #     self.allowDeselect = False
-        # if not self.allowMovement and self.count >= 15:
-        #     self.allowMovement = True
-        # if self.pressBegan and (self.allowDeselect or not self.allowMovement):
-        #     self.count += 1
         if not self.allowMovement and self.count >= 10:
             self.allowMovement = True
         if self.allowDeselect and self.count >= 10:
@@ -229,11 +220,13 @@ class GraphicsScene(QGraphicsScene):
                             rpointer = mpointer - 1
                         else:
                             lpointer = mpointer + 1
-                #print("MID: ", mpointer)
                     
                 newBlock = self.schedule[mpointer].order
                 if newBlock + totalProcedureSize - 1 >= len(self.schedule):
                     newBlock = len(self.schedule) - totalProcedureSize
+
+            except Exception as e:
+                print("There was an issue with binary search:", e)
 
                 # conflictCount = 0
                 # for i in range(totalProcedureSize):
@@ -307,7 +300,7 @@ class GraphicsScene(QGraphicsScene):
                 #         for i in range(squishIndex + 1, newBlock + totalProcedureSize):
                 #             if (self.schedule[i].isFull == True):
                 #                 totalBotSquish += 1
-
+            try:
                 squishRt = self.squishHelper(newBlock, totalProcedureSize)
                 totalTopSquish = squishRt[0]
                 totalBotSquish = squishRt[1]
@@ -318,13 +311,13 @@ class GraphicsScene(QGraphicsScene):
                 totalSquishRem = totalTopSquish + totalBotSquish
                 # totalTopSquish = totalProcedureSize + squishAddTop
                 # totalBotSquish = squishAddBot
-                topIndex = newBlock - 1
-                botIndex = newBlock + totalProcedureSize
-                while (totalSquishRem > 0):
+                topIndex = max(newBlock - 1, 0)
+                botIndex = min(newBlock + totalProcedureSize, len(self.schedule) - 1)
+                while (totalSquishRem > 0):                     # Find distance needed to squish above and below squishIndex
                     #print("BLAH1: ", totalTopSquish, totalBotSquish, newBlock, squishIndex, totalSquishRem)
                     prevBlocksEmpty = 0
                     if totalTopSquish > 0:
-                        for i in range(newBlock - 1, -1, -1):
+                        for i in range(newBlock - 1, -1, -1):           # Find index where there is enough empty space above to accommodate insertion
                             if (self.schedule[i].isFull == False):
                                 prevBlocksEmpty += 1
 
@@ -333,7 +326,7 @@ class GraphicsScene(QGraphicsScene):
                                 #self.squish(i, squishIndex)
                                 break
                         totalSquishRem -= prevBlocksEmpty
-                        if (prevBlocksEmpty != totalTopSquish):
+                        if (prevBlocksEmpty != totalTopSquish):         # If not enough room above, shift insertion index down by remaining space amount
                             # tempCount = 0
                             # for i in range(newBlock, squishIndex + 1):
                             #     if self.schedule[i].isFull == True:
@@ -360,6 +353,10 @@ class GraphicsScene(QGraphicsScene):
                             #squishIndex = newBlock
                             totalTopSquish = 0
                             totalBotSquish = 0
+                            # if (newBlock + totalProcedureSize >= len(self.schedule)):
+                            #     newBlock = len(self.schedule) - totalProcedureSize
+                            #     squishIndex = len(self.schedule) - 1
+                            # else:
                             for i in range(newBlock, newBlock + totalProcedureSize):
                                 if (self.schedule[i].isFull == True):
                                     totalBotSquish += 1
@@ -368,7 +365,7 @@ class GraphicsScene(QGraphicsScene):
                     #print("BLAH2: ", totalTopSquish, totalBotSquish, newBlock, squishIndex, totalSquishRem)
                     if totalBotSquish > 0:
 
-                        for i in range(newBlock + totalProcedureSize, len(self.schedule)):
+                        for i in range(newBlock + totalProcedureSize, len(self.schedule)):          # Find index where there is enough empty space below to accommodate insertion
                             if (self.schedule[i].isFull == False):
                                 prevBlocksEmpty += 1
                             
@@ -377,7 +374,7 @@ class GraphicsScene(QGraphicsScene):
                                 botIndex = i
                                 break
                         totalSquishRem -= prevBlocksEmpty
-                        if (prevBlocksEmpty != totalBotSquish):
+                        if (prevBlocksEmpty != totalBotSquish):                 # If not enough space below, shift insertion index up by corresponding amount
                             #self.squish(squishIndex + 1, len(self.schedule) - 1, False)
                             newBlock -= totalBotSquish - prevBlocksEmpty
                             #newBlock -= botEnd
@@ -394,7 +391,6 @@ class GraphicsScene(QGraphicsScene):
                                     totalTopSquish += 1
                             totalSquishRem = totalTopSquish + totalBotSquish
                         prevBlocksEmpty = 0
-                #print("BLAH3: ", totalTopSquish, totalBotSquish, newBlock, squishIndex, totalSquishRem)
                 self.squish(topIndex, squishIndex)
                 self.squish(squishIndex + 1, botIndex, False)
 
@@ -560,10 +556,13 @@ class GraphicsScene(QGraphicsScene):
                 for i in range(squishIndex + 1, newBlock + totalProcedureSize):
                     if (self.schedule[i].isFull == True):
                         totalBotSquish += 1
+
         return [totalTopSquish, totalBotSquish, squishIndex, topEnd, botEnd]
         
     def squish(self, startingIndex, endingIndex, squishUp = True):
+        """ Squish to top or bottom from startingIndex to endingIndex (incl.) """
         #print("squishing")
+       
         if squishUp:
             bpointer = startingIndex
             while (self.schedule[bpointer].isFull == True and bpointer <= endingIndex): #Find first open space

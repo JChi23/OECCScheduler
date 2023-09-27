@@ -1,3 +1,4 @@
+""" Represents the data dictionaries used to determine lengths of procedures """
 from ScheduleColors import BlockColors
 
 procedureIDs = { #What the 2 key value is set to for each procedure block

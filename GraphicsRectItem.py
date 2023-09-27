@@ -1,3 +1,4 @@
+""" Object built off of QGraphicsRectItem that represents all procedure blocks created in schedule """
 import typing
 
 from PyQt6.QtCore import Qt
@@ -15,9 +16,9 @@ class GraphicsRectItem(QGraphicsRectItem):
         self.setBrush(blockColor)
         self.setPen(QPen(Qt.GlobalColor.black))
 
-        timeFontSize = 10
-        nameFontSize = 13
-        typeFontSize = 13
+        timeFontSize = 12
+        nameFontSize = 14
+        typeFontSize = 11
 
         # Add name
         if blockType == "Break":
@@ -55,7 +56,7 @@ class GraphicsRectItem(QGraphicsRectItem):
         # Adjust font sizes if needed
         if blockType == "Custom":
             if segLength == 3:
-                timeFontSize = 8
+                #timeFontSize = 8
                 timeRectText.setY(-2)
             elif segLength == 2:
                 timeFontSize = 8
@@ -64,12 +65,13 @@ class GraphicsRectItem(QGraphicsRectItem):
                 timeRectText.setX(timeRectText.x() - 2)
                 timeRectText.setY(-2)
             elif segLength == 1:
-                timeFontSize = 6
+                timeFontSize = 7
                 nameFontSize = 9
                 typeFontSize = 9
                 rectText.setY(-3)
                 typeRectText.setY(-3)
                 timeRectText.setY(-2)
+                timeRectText.setX(timeRectText.x() - 2)
         rectText.setFont(QFont("Helvetica", nameFontSize))
         timeRectText.setFont(QFont("Helvetica", timeFontSize))
         typeRectText.setFont(QFont("Helvetica", typeFontSize))

@@ -3,8 +3,8 @@
         0 = (segment) block id placement; (procedure) beginning block, 
         1 = (procedure) length of block, 
         2 = (procedure) block procedure identifier, 
-        3 = (2-date text, 1-name text) text object identifier, 
-        4 = block segment identifier"""
+        3 = (3-type text, 2-date text, 1-name text) text object identifier, 
+        4 = block segment identifier """
 
 import os
 import numpy as np
@@ -131,6 +131,7 @@ class Window(QWidget):
                 # blockSegBoxText = QGraphicsTextItem(str(i *4 + j), blockSegBox)   
                 # blockSegBoxText.setPos(140, -4)
                 # blockSegBoxText.setFont(QFont("Helvetica", 6))
+                #           END UTIL
                 
                 self.scene.addItem(blockSegBox)
                 self.scene.schedule.append(BlockSegment(i * self.numSubBlocks + j, (self.blockSize * i) + ((self.blockSize / self.numSubBlocks) * j),
@@ -192,7 +193,7 @@ class Window(QWidget):
             self.scene.procedures.append(breakBlock)
             breakBlock.setFlag(QGraphicsItem.GraphicsItemFlag.ItemIsMovable)
             breakBlock.setFlag(QGraphicsItem.GraphicsItemFlag.ItemIsSelectable)
-            self.fill(breakStart, self.numSubBlocks * breakBlockLength)
+            self.fill(breakStart, self.numSubBlocks * breakBlockLength, True)
             
 
 
@@ -204,20 +205,15 @@ class Window(QWidget):
         self.patientName = QLineEdit()
         self.patientName.setPlaceholderText("Patient Name")
         self.patientName.textChanged.connect(self.name_changed)
-        #vbox.addWidget(self.patientName)
 
         insert = QPushButton("Insert")
         insert.setIcon(QIcon(os.path.join(self.baseDir, "icons", "insert.png")))
         insert.clicked.connect(self.insert)
-        #vbox.addWidget(insert)
 
         setBlock = QComboBox()
-        setBlock.addItems(["Custom", "Break", "Regular", "Laser", "Premium", "Trabeculectomy", 
-                           "Vivity", "Toric/ORA", "Goniotomy", "Micropulse", "Canaloplasty", "Stent",
-                           "Shunt", "PanOptix", "XEN"])
+        setBlock.addItems(["Custom", "Break"] + ProcedureDicts.procedureList[3:])
         setBlock.setCurrentIndex(2)
         setBlock.currentTextChanged.connect(self.text_changed)
-        #vbox.addWidget(setBlock)
 
         self.customLength = QDoubleSpinBox()
         self.customLength.setMinimum(0.25)
@@ -225,15 +221,15 @@ class Window(QWidget):
         self.customLength.setSingleStep(0.25)
         self.customLength.setEnabled(False)
         self.customLength.valueChanged.connect(self.changeCustomLength)
-        customLengthLabel = QLabel("Length:")
-        customLengthLabel.setBuddy(self.customLength)
-        #vbox.addWidget(self.customLength)
+        self.customLengthLabel = QLabel("Length:")
+        self.customLengthLabel.setBuddy(self.customLength)
+        self.customLengthLabel.setEnabled(False)
 
         insertGroupBox = QGroupBox("Insert Procedure")
         insertGroupLayout = QFormLayout()
         insertGroupLayout.addRow(self.patientName)
         insertGroupLayout.addRow(QLabel("Procedure:"), setBlock)
-        insertGroupLayout.addRow(customLengthLabel, self.customLength)
+        insertGroupLayout.addRow(self.customLengthLabel, self.customLength)
         insertGroupLayout.addRow(insert)
         insertGroupLayout.setSizeConstraint(QFormLayout.SizeConstraint.SetFixedSize)
         insertGroupBox.setLayout(insertGroupLayout)
@@ -250,19 +246,16 @@ class Window(QWidget):
         self.deleteBlock.setEnabled(False)
         self.deleteBlock.setIcon(QIcon(os.path.join(self.baseDir, "icons", "delete.png")))
         self.deleteBlock.clicked.connect(self.delete)
-        #vbox.addWidget(delete)
 
         self.changeName = QPushButton("Change Name")
         self.changeName.setEnabled(False)
         self.changeName.setIcon(QIcon(os.path.join(self.baseDir, "icons", "changeName.png")))
         self.changeName.clicked.connect(self.changePatientName)
-        #vbox.addWidget(self.changeName)
 
         modifyGroupBox = QGroupBox("Modify Procedure")
         modifyGroupLayout = QFormLayout()
         modifyGroupLayout.addRow(self.modifyPatientName)
         modifyGroupLayout.addRow(self.changeName, self.deleteBlock)
-        #modifyGroupLayout.addRow(self.deleteBlock)
         modifyGroupLayout.setSizeConstraint(QFormLayout.SizeConstraint.SetFixedSize)
         modifyGroupBox.setLayout(modifyGroupLayout)
         vbox.addWidget(modifyGroupBox)
@@ -313,7 +306,7 @@ class Window(QWidget):
         self.darkenFull()
     
 
-    # FUNCTIONS BELOW
+    """ FUNCTIONS BELOW """
 
             
     def delete(self):
@@ -351,16 +344,9 @@ class Window(QWidget):
 
         self.darkenFull()
 
-    def createTimeText(self, firstEmpty, blockType):
-        timeText = "Time"
-        try:
-            lastBlockIndex = firstEmpty + int(self.blockTimes[blockType] * 4) - 1
-            timeText = self.scene.schedule[firstEmpty].beginString + " - " + self.scene.schedule[lastBlockIndex].endString
-        except:
-            print("There was an issue populating times")
-        return timeText
-
     def openFile(self):
+        """ Open a xlsx schedule and load into scene """
+
         fname = QFileDialog.getOpenFileName(self, 'Open file', self.baseDir)
         if fname[0]:
             print(fname[0])
@@ -416,16 +402,40 @@ class Window(QWidget):
                 # Iterate through rows and add procedures to schedule
 
                 for row in dataframe1.iter_rows(rowFirst, softMaxRow):
+                    stopLoad = False
+                    diffBreak = False
                     if  row[colFirstName].value is None and row[colLastName].value is None and row[colIOL].value is None:
-                        break
+                        for col in row:
+                            if col.value is not None:
+                                try:
+                                    if "cancelled" in col.value.lower():
+                                        stopLoad = True
+                                        break
+                                    elif "Surgeon Break" in col.value:
+                                        print("AT BREAK")
+                                        stopLoad = False
+                                        diffBreak = True
+                                        break
+                                    else:
+                                        stopLoad = True     
+                                except Exception as e:
+                                    print("Could not read column:", e)
+
+                            if diffBreak:
+                                break
           
+                    if stopLoad:
+                        break
                     else:
                         firstEmpty = -1
                         firstY = -1
                         blockType = "Regular"
                         customLength = 1
 
-                        if row[colIOL].value is not None and "Surgeon Break" in row[colIOL].value:
+                        if (diffBreak or
+                            row[colIOL].value is not None and "Surgeon Break" in row[colIOL].value or
+                            row[colFirstName].value is not None and "Surgeon Break" in row[colFirstName].value or
+                            row[colLastName].value is not None and "Surgeon Break" in row[colLastName].value):
                             blockType = "Break"
                             name = "Break"
                         else:
@@ -436,15 +446,26 @@ class Window(QWidget):
 
                             if ("shunt" in procedure):
                                 blockType = "Shunt"
-                            elif ("xen" in procedure or "trabeculectomy" in procedure):
+                            elif ("xen" in procedure):
+                                blockType = "XEN"
+                            elif ("trabeculectomy" in procedure):
                                 blockType = "Trabeculectomy"
-                            elif ("vivity" in procedure or "panoptix" in procedure or
-                                "toric" in procedure):
+                            elif ("vivity" in procedure):
+                                blockType = "Vivity"
+                            elif ("panoptix" in procedure):
+                                blockType = "PanOptix"
+                            elif ("toric" in procedure):
                                 blockType = "Premium"
-                            elif ("lasik" in procedure or "goniotomy" in procedure or "goniosynechialysis" in procedure or
-                                "femto" in procedure or "lensx" in procedure or "/ora" in procedure or "micropulse" in procedure or
-                                "canaloplasty" in procedure or "stent" in procedure):
+                            elif ("goniotomy" in procedure or "goniosynechialysis" in procedure):
+                                blockType = "Goniotomy"
+                            elif ("lasik" in procedure or "femto" in procedure or "lensx" in procedure or "/ora" in procedure):
                                 blockType = "Laser"
+                            elif ("micropulse" in procedure):
+                                blockType = "Micropulse"
+                            elif ("canaloplasty" in procedure):
+                                blockType = "Canaloplasty"
+                            elif ("stent" in procedure):
+                                blockType = "Stent"
                             elif "phaco" in procedure or "trimox" in procedure:
                                 blockType = "Regular"
                             else:
@@ -472,12 +493,13 @@ class Window(QWidget):
                 print("Could not read schedule", e)
     
     def squish(self):
+        """ Using the Graphics Scene squish method, remove whitespace between blocks """
         self.scene.squish(0, len(self.scene.schedule) -1 )
         self.darkenFull()
         return
 
     def save(self):
-        """ Save current schedule to SavedSchedule.txt (does not include break) """
+        """ Save current schedule to SavedSchedule.txt """
 
         try:
             with open(os.path.join(self.baseDir, "resources", "SavedSchedule.txt"), "w") as scheduleFile:
@@ -507,6 +529,7 @@ class Window(QWidget):
             print("Could not save schedule")
 
     def download(self):
+        """ Download current schedule as a JPG image """
         try:
             pix = QPixmap(self.canvasWidth, self.canvasHeight)
             painter = QPainter(pix)
@@ -555,7 +578,7 @@ class Window(QWidget):
             self.insertBlock(blockType, firstEmpty, firstY, segLength, length, name)
 
     def insert(self):
-        """" Insert a new schedule block """
+        """" Insert a new schedule block at the first accommodating empty slot """
         
         blockType = self.blockType
         
@@ -573,6 +596,7 @@ class Window(QWidget):
         self.darkenFull()
     
     def insertBlock(self, blockType, firstEmpty, firstY, segLength, length, rectText):
+        """ Create and add a procedure block at the given empty index to the scene """
     
         timeText = self.getTimeText(firstEmpty, firstEmpty + segLength - 1)
         rect = GraphicsRectItem(0, 0, self.blockWidth, self.blockSize * length, self.timeWidth, self.typeWidth, 
@@ -594,42 +618,42 @@ class Window(QWidget):
             self.caseCountItem.setPlainText("Cases: " + str(self.currentCaseCount))
 
     def getTimeText(self, startIndex, endIndex):
+        """ Return a string that states the time range from the startIndex to endIndex """
         try:
             return self.scene.schedule[startIndex].beginString + " - " + self.scene.schedule[endIndex].endString
         except Exception as e:
             print("There was an issue populating break time:", e)
             return "Time"
     
-    def fill(self, startIndex, segLength):
+    def fill(self, startIndex, segLength, isBreak = False):
+        """ Set the schedule fullness according to parameters """
         try:
             for i in range(segLength):
                 self.scene.schedule[startIndex + i].isFull = True
-                self.scene.schedule[startIndex + i].isBreak = True
         except Exception as e:
             print("There was an issue:", e)
 
     def findFirstEmpty(self, segLength, startIndex = 0, endIndex = 1000000):
         """ Find the first empty section from the startIndex to endIndex (incl.) of length segLength """
         endIndex = min(len(self.scene.schedule), endIndex + 1)
-        for i in range(startIndex, endIndex):
-            try:
-                if (i + segLength >= endIndex):
-                    break
-                if (self.scene.schedule[i].isFull == False):
-                    isColliding = False
-                    
-                    for j in range(1, segLength):
-                        if (self.scene.schedule[i + j].isFull == True):
-                            isColliding = True
-                            i = i + j + 1
-                            break
+        if (startIndex + segLength < endIndex):
+            for i in range(startIndex, endIndex):
+                try:
+                    if (self.scene.schedule[i].isFull == False):
+                        isColliding = False
+                        
+                        for j in range(1, segLength):
+                            if (self.scene.schedule[i + j].isFull == True):
+                                isColliding = True
+                                i = i + j + 1
+                                break
 
-                    if (not isColliding):
-                        return self.scene.schedule[i].order, self.scene.schedule[i].y
-                    
-            except Exception as e:
-                print("Issue checking collisions:", e)
-                break
+                        if (not isColliding):
+                            return self.scene.schedule[i].order, self.scene.schedule[i].y
+                        
+                except Exception as e:
+                    print("Issue checking collisions:", e)
+                    break
         return -1, -1
 
     def index_changed(self, i): # i is an int
@@ -637,10 +661,13 @@ class Window(QWidget):
 
     def text_changed(self, s): # s is a str
         """ Change the stored procedure type when combobox is updated """
+
         if (s == "Custom" and not self.customLength.isEnabled()):
             self.customLength.setEnabled(True)
+            self.customLengthLabel.setEnabled(True)
         elif (s != "Custom" and self.customLength.isEnabled()):
             self.customLength.setEnabled(False)
+            self.customLengthLabel.setEnabled(False)
 
         self.blockType = s
     
@@ -666,7 +693,7 @@ class Window(QWidget):
         self.patientName.setText(name)
         self.modifyPatientName.setText(name)
 
-    def changeNameChange(self, enable=False):
-        """ Enable/Disable the change name button on widget """
+    def enableNameChange(self, enable=False):
+        """ Enable/Disable the change name and delete buttons on widget """
         self.changeName.setEnabled(enable)
         self.deleteBlock.setEnabled(enable)
