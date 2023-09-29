@@ -19,6 +19,8 @@ procedureIDs = { #What the 2 key value is set to for each procedure block
     "PanOptix" : 14,
     "XEN" : 15,
     "Trimox" : 16,
+    "XENRevision" : 17,
+    "WoundRevision" : 18,
 }
 
 procedureList = [ #What the 2 key value is set to for each procedure block
@@ -39,25 +41,29 @@ procedureList = [ #What the 2 key value is set to for each procedure block
     "PanOptix",
     "XEN",
     "Trimox",
+    "XENRevision",
+    "WoundRevision"
 ]
 
 procedureDesc = {
-    "Regular" : "Regular Cataract",
-    "Laser" : "Laser Cataract",
-    "Premium" : 1.5,
-    "Custom" :  1,
-    "Break" : 2,
-    "Trabeculectomy" : 3, 
-    "Vivity" : 1.5,
-    "Toric/ORA" : "Laser Cataract",
-    "Goniotomy" : 1.25,
-    "Micropulse" : 1.25,
-    "Canaloplasty" : 1.25,
-    "Stent" : 1.25,
-    "Shunt" : 4,
-    "PanOptix" : 1.5,
-    "XEN" : 3,
-    "Trimox" : 1,
+    "Regular" : "Regular",
+    "Laser" : "Laser",
+    "Premium" : "Premium",
+    "Custom" :  "Custom",
+    "Break" : "Surgeon Break",
+    "Trabeculectomy" : "Trabeculectomy", 
+    "Vivity" : "Vivity",
+    "Toric/ORA" : "TORIC",
+    "Goniotomy" : "MIGS",
+    "Micropulse" : "Micropulse",
+    "Canaloplasty" : "MIGS",
+    "Stent" : "MIGS",
+    "Shunt" : "Shunt",
+    "PanOptix" : "PanOptix",
+    "XEN" : "XEN",
+    "Trimox" : "Regular",
+    "XENRevision" : "XEN Revision",
+    "WoundRevision" : "Wound Revision",
 }
 
 blockTimes = {
@@ -77,6 +83,8 @@ blockTimes = {
     "PanOptix" : 1.5,
     "XEN" : 3,
     "Trimox" : 1,
+    "XENRevision" : 2,
+    "WoundRevision" : 1.5,
 }
 
 blockColors = {
@@ -96,4 +104,6 @@ blockColors = {
     "PanOptix" : BlockColors.PANOPTIX.value,
     "XEN" : BlockColors.XEN.value,
     "Trimox" : BlockColors.TRIMOX.value,
+    "XENRevision" : BlockColors.REGULAR.value,
+    "WoundRevision" : BlockColors.REGULAR.value,
 }

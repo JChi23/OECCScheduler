@@ -1,5 +1,13 @@
-# OECCScheduler v. 4.1
+# OECCScheduler v. 4.3
 A PyQt Surgery Scheduler for MVP
+
+v. 4.3
+- Added help guide that can be accessed via the help button on the main menu
+
+v. 4.2
+- Changed UI button layout for better readability
+- Added icons to UI buttons for better readability
+- Added better file-reading for excel files
 
 v. 4.1
 - Increased UI Scale for readibility
@@ -13,7 +21,7 @@ v. 4.0
 - Added 'Squish' functionality to remove whitespace
 - Increased robustness of file reading
 
-v. 3.5
+v. 3.1
 - Added additional procedure categories
 - Added total case number to top of schedule
 
@@ -45,3 +53,11 @@ Known issues:
 - Issue with multi movement up bugging out and not remapping correctly (Unknown how to reproduce)
 - Names can overflow blocks
 - Clicking between blocks may cause multiple blocks to be unintentionally selected
+
+TODO:
+- Package scheduler for windows
+- Name auto-spacing/sizing
+- Hovering over blocks to see a bigger description?
+- Increased customizability for time
+- Increased customizability for types of procedures inputed
+- Ability to modify type

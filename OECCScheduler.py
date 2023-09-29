@@ -15,6 +15,8 @@ from BlockSegment import BlockSegment
 from GraphicsScene import GraphicsScene
 from GraphicsRectItem import GraphicsRectItem
 from ScheduleColors import BlockColors
+from Guide import HelpGuide
+from CheckableComboBox import CheckableComboBox
 import ProcedureDicts
 
 from PyQt6.QtCore import Qt
@@ -70,6 +72,8 @@ class Window(QWidget):
     }
     firstEmptyBlock = 0
     scaleAddition = 0
+
+    guideWindow = None
 
     def __init__(self, saved=None, baseDir=""):
         super().__init__()
@@ -225,10 +229,17 @@ class Window(QWidget):
         self.customLengthLabel.setBuddy(self.customLength)
         self.customLengthLabel.setEnabled(False)
 
+        # comunes = ['Ameglia', 'Arcola', 'Bagnone', 'Bolano']
+        # self.combo = CheckableComboBox()
+        # self.combo.addItems(comunes)
+        # #self.combo.toggleItem(2)
+        # self.combo.currentTextChanged.connect(self.textChanged2)
+
         insertGroupBox = QGroupBox("Insert Procedure")
         insertGroupLayout = QFormLayout()
         insertGroupLayout.addRow(self.patientName)
         insertGroupLayout.addRow(QLabel("Procedure:"), setBlock)
+        #insertGroupLayout.addRow(QLabel("Procedure:"), self.combo)
         insertGroupLayout.addRow(self.customLengthLabel, self.customLength)
         insertGroupLayout.addRow(insert)
         insertGroupLayout.setSizeConstraint(QFormLayout.SizeConstraint.SetFixedSize)
@@ -294,6 +305,18 @@ class Window(QWidget):
         download.clicked.connect(self.download)
         vbox.addWidget(download)
 
+        self.guide = QPushButton("Help")
+        self.guide.clicked.connect(self.showGuide)
+        self.guide.setIcon(QIcon(os.path.join(self.baseDir, "icons", "help.png")))
+        vbox.addWidget(self.guide)
+
+        # comunes = ['Ameglia', 'Arcola', 'Bagnone', 'Bolano']
+        # combo = CheckableComboBox()
+        # combo.addItems(comunes)
+        # combo.toggleItem(2)
+        # combo.currentTextChanged.connect(self.textChanged2)
+        # vbox.addWidget(combo)
+
         self.view = QGraphicsView(self.scene)
         self.view.setRenderHint(QPainter.RenderHint.Antialiasing)
 
@@ -308,6 +331,11 @@ class Window(QWidget):
 
     """ FUNCTIONS BELOW """
 
+    def closeEvent(self, event):
+        """ Overriden closeEvent to close other windows if still open """
+        if self.guideWindow:
+            self.guideWindow.close()
+        event.accept()
             
     def delete(self):
         """ Delete currently selected blocks """
@@ -412,7 +440,6 @@ class Window(QWidget):
                                         stopLoad = True
                                         break
                                     elif "Surgeon Break" in col.value:
-                                        print("AT BREAK")
                                         stopLoad = False
                                         diffBreak = True
                                         break
@@ -446,10 +473,14 @@ class Window(QWidget):
 
                             if ("shunt" in procedure):
                                 blockType = "Shunt"
-                            elif ("xen" in procedure):
+                            elif ("xen" in procedure and "revision" not in procedure):
                                 blockType = "XEN"
                             elif ("trabeculectomy" in procedure):
                                 blockType = "Trabeculectomy"
+                            elif ("xen" in procedure and "revision" in procedure):
+                                blockType = "XENRevision"
+                            elif ("wound" in procedure and "revision" in procedure):
+                                blockType = "WoundRevision"
                             elif ("vivity" in procedure):
                                 blockType = "Vivity"
                             elif ("panoptix" in procedure):
@@ -458,7 +489,7 @@ class Window(QWidget):
                                 blockType = "Premium"
                             elif ("goniotomy" in procedure or "goniosynechialysis" in procedure):
                                 blockType = "Goniotomy"
-                            elif ("lasik" in procedure or "femto" in procedure or "lensx" in procedure or "/ora" in procedure):
+                            elif ("femto" in procedure or "lensx" in procedure or "/ora" in procedure or "catalyst" in procedure):
                                 blockType = "Laser"
                             elif ("micropulse" in procedure):
                                 blockType = "Micropulse"
@@ -658,6 +689,12 @@ class Window(QWidget):
 
     def index_changed(self, i): # i is an int
         print(i)
+    
+    def textChanged2(self, s):
+        for item in self.combo.currentData():
+            print(item)
+        #print(s)
+        print("END")
 
     def text_changed(self, s): # s is a str
         """ Change the stored procedure type when combobox is updated """
@@ -670,6 +707,11 @@ class Window(QWidget):
             self.customLengthLabel.setEnabled(False)
 
         self.blockType = s
+
+    def showGuide(self):
+        if self.guideWindow is None:
+            self.guideWindow = HelpGuide()
+        self.guideWindow.show()
     
     def changeCustomLength(self, i):
         """ Change the stored custom length type when the appropriate widget is updated """
