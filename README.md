@@ -3,6 +3,8 @@ A PyQt Surgery Scheduler for MVP
 
 v. 4.3
 - Added help guide that can be accessed via the help button on the main menu
+- Changed MIGS procedures to display correctly
+- Changed the way procedures are read in from files so that multi-procedures can be described correctly
 
 v. 4.2
 - Changed UI button layout for better readability

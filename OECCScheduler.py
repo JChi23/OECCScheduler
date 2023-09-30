@@ -190,9 +190,13 @@ class Window(QWidget):
             # Add breaktime if no saved data
             breakBlockLength = 2
             breakStart = 18 * self.numSubBlocks
+            # breakBlock = GraphicsRectItem(0, 0, self.blockWidth, self.blockSize * breakBlockLength, self.timeWidth, self.typeWidth,
+            #                               self.getTimeText(breakStart, breakStart + int(self.numSubBlocks * breakBlockLength) - 1), 
+            #                               "Break", ["Break"], QBrush(BlockColors.BREAK.value), int(self.numSubBlocks * breakBlockLength))
             breakBlock = GraphicsRectItem(0, 0, self.blockWidth, self.blockSize * breakBlockLength, self.timeWidth, self.typeWidth,
                                           self.getTimeText(breakStart, breakStart + int(self.numSubBlocks * breakBlockLength) - 1), 
-                                          "Break", ["Break"], QBrush(BlockColors.BREAK.value), int(self.numSubBlocks * breakBlockLength))
+                                          "Break", ["Break"], int(self.numSubBlocks * breakBlockLength))
+           
             breakBlock.setPos(self.timeBoxWidth, self.scene.schedule[breakStart].y)
             breakBlock.setData(0, breakStart)                                     # id of first block segment that break occupies
             breakBlock.setData(1, breakBlockLength * self.numSubBlocks)                         # number of segments that break occupies
@@ -632,14 +636,14 @@ class Window(QWidget):
 
         # print("Procedures: ", len(self.scene.procedures))
 
-        for item in self.scene.items():
-            if item.data(4) is not None:
-                if self.scene.schedule[item.data(0)].isFull == True:
-                    item.setBrush(QColor(0, 0, 0, 125))
-                    item.update()
-                else: 
-                    item.setBrush(QColor(0, 0, 0, 0))
-                    item.update()
+        # for item in self.scene.items():
+        #     if item.data(4) is not None:
+        #         if self.scene.schedule[item.data(0)].isFull == True:
+        #             item.setBrush(QColor(0, 0, 0, 125))
+        #             item.update()
+        #         else: 
+        #             item.setBrush(QColor(0, 0, 0, 0))
+        #             item.update()
         return
 
     
@@ -690,8 +694,10 @@ class Window(QWidget):
         """ Create and add a procedure block at the given empty index to the scene """
     
         timeText = self.getTimeText(firstEmpty, firstEmpty + segLength - 1)
+        # rect = GraphicsRectItem(0, 0, self.blockWidth, self.blockSize * length, self.timeWidth, self.typeWidth, 
+        #                         timeText, rectText, blockTypes, self.blockColors[blockTypes[0]], segLength)
         rect = GraphicsRectItem(0, 0, self.blockWidth, self.blockSize * length, self.timeWidth, self.typeWidth, 
-                                timeText, rectText, blockTypes, self.blockColors[blockTypes[0]], segLength)
+                                timeText, rectText, blockTypes, segLength)
         rect.setPos(self.timeBoxWidth, firstY)
         rect.setData(0, firstEmpty)                            # id of first block segment that rect occupies
         rect.setData(1, segLength)                             # length that of procedure

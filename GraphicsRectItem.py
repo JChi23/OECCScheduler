@@ -16,7 +16,8 @@ class GraphicsRectItem(QGraphicsRectItem):
     desc = ""
     blockStr = ""
 
-    def __init__(self, x, y, blockWidth, blockHeight, timeWidth, typeWidth, time, name, blockTypes, blockColor, segLength):
+    #def __init__(self, x, y, blockWidth, blockHeight, timeWidth, typeWidth, time, name, blockTypes, blockColor, segLength):
+    def __init__(self, x, y, blockWidth, blockHeight, timeWidth, typeWidth, time, name, blockTypes, segLength):
         super().__init__(x, y, blockWidth, blockHeight)
         #self.setBrush(blockColor)
         self.setPen(QPen(Qt.GlobalColor.black))
