@@ -161,7 +161,7 @@ class Window(QWidget):
 
 
             # Insert saved data. If no data, insert a break block at 12 pm
-                # SAVED DATA FORMAT: (TYPE, NAME ,SEGMENT LENGTH)
+                # SAVED DATA FORMAT: (TYPE, NAME ,SEGMENT LENGTH, ALL TYPES)
         breakFlag = True
         skipCount = 0
 
@@ -173,9 +173,14 @@ class Window(QWidget):
                     skipCount += 1
                 else:
                     breakFlag = False
+                    blockTypes = []
+                    if len(inputs[3]) < 1:
+                        inputs[3] = "0"
+                    for type in inputs[3].split("-"):
+                        blockTypes.append(ProcedureDicts.procedureList[int(type)])
                     if len(inputs[1]) < 1:
                         inputs[1] = "Patient"
-                    self.insertSaved(int(inputs[0]), skipCount, inputs[1], int(inputs[2]))
+                    self.insertSaved(int(inputs[0]), skipCount, inputs[1], int(inputs[2]), blockTypes)
                     skipCount += int(inputs[2])
                 
         except Exception as e:
@@ -187,7 +192,7 @@ class Window(QWidget):
             breakStart = 18 * self.numSubBlocks
             breakBlock = GraphicsRectItem(0, 0, self.blockWidth, self.blockSize * breakBlockLength, self.timeWidth, self.typeWidth,
                                           self.getTimeText(breakStart, breakStart + int(self.numSubBlocks * breakBlockLength) - 1), 
-                                          "Break", "Break", QBrush(BlockColors.BREAK.value), int(self.numSubBlocks * breakBlockLength))
+                                          "Break", ["Break"], QBrush(BlockColors.BREAK.value), int(self.numSubBlocks * breakBlockLength))
             breakBlock.setPos(self.timeBoxWidth, self.scene.schedule[breakStart].y)
             breakBlock.setData(0, breakStart)                                     # id of first block segment that break occupies
             breakBlock.setData(1, breakBlockLength * self.numSubBlocks)                         # number of segments that break occupies
@@ -215,7 +220,7 @@ class Window(QWidget):
         insert.clicked.connect(self.insert)
 
         setBlock = QComboBox()
-        setBlock.addItems(["Custom", "Break"] + ProcedureDicts.procedureList[3:])
+        setBlock.addItems(["Custom", "Break"] + ProcedureDicts.procedureList[3:(len(ProcedureDicts.procedureList) - 1)])
         setBlock.setCurrentIndex(2)
         setBlock.currentTextChanged.connect(self.text_changed)
 
@@ -456,6 +461,7 @@ class Window(QWidget):
                     else:
                         firstEmpty = -1
                         firstY = -1
+                        blockTypes = []
                         blockType = "Regular"
                         customLength = 1
 
@@ -464,57 +470,107 @@ class Window(QWidget):
                             row[colFirstName].value is not None and "Surgeon Break" in row[colFirstName].value or
                             row[colLastName].value is not None and "Surgeon Break" in row[colLastName].value):
                             blockType = "Break"
+                            blockTypes.append("Break")
                             name = "Break"
                         else:
                             name = row[colFirstName].value[0] + ". " + row[colLastName].value
                             procedure = row[colProcedure].value.lower()
                             
                             # check for block type and add it
-
-                            if ("shunt" in procedure):
-                                blockType = "Shunt"
-                            elif ("xen" in procedure and "revision" not in procedure):
-                                blockType = "XEN"
-                            elif ("trabeculectomy" in procedure):
-                                blockType = "Trabeculectomy"
-                            elif ("xen" in procedure and "revision" in procedure):
-                                blockType = "XENRevision"
-                            elif ("wound" in procedure and "revision" in procedure):
-                                blockType = "WoundRevision"
+                            if ("toric" in procedure):
+                                blockTypes.append("Premium")
                             elif ("vivity" in procedure):
-                                blockType = "Vivity"
+                                blockTypes.append("Vivity")
                             elif ("panoptix" in procedure):
-                                blockType = "PanOptix"
-                            elif ("toric" in procedure):
-                                blockType = "Premium"
-                            elif ("goniotomy" in procedure or "goniosynechialysis" in procedure):
-                                blockType = "Goniotomy"
+                                blockTypes.append("PanOptix")
                             elif ("femto" in procedure or "lensx" in procedure or "/ora" in procedure or "catalyst" in procedure):
-                                blockType = "Laser"
-                            elif ("micropulse" in procedure):
-                                blockType = "Micropulse"
-                            elif ("canaloplasty" in procedure):
-                                blockType = "Canaloplasty"
-                            elif ("stent" in procedure):
-                                blockType = "Stent"
+                                blockTypes.append("Laser")
                             elif "phaco" in procedure or "trimox" in procedure:
-                                blockType = "Regular"
-                            else:
-                                blockType = "Custom"
+                                blockTypes.append("Regular")
 
-                        if blockType != "Custom":
-                            segLength = int(self.blockTimes[blockType] * self.numSubBlocks)
-                            length = self.blockTimes[blockType]
+                            if ("xen" in procedure):
+                                if ("revision" in procedure):
+                                    blockTypes.append("XENRevision")
+                                else:
+                                    blockTypes.append("XEN")
+                            elif ("wound" in procedure and "revision" in procedure):
+                                blockTypes.append("WoundRevision")
+
+                            if ("goniotomy" in procedure or "goniosynechialysis" in procedure):
+                                #blockTypes.append("Goniotomy")
+                                blockTypes.append("MIGS")
+                            if ("stent" in procedure):
+                                #blockTypes.append("Stent")
+                                blockTypes.append("MIGS")
+                            if ("canaloplasty" in procedure):
+                                #blockTypes.append("Canaloplasty")
+                                blockTypes.append("MIGS")
+                            if ("shunt" in procedure):
+                                blockTypes.append("Shunt")
+                            if ("trabeculectomy" in procedure):
+                                blockTypes.append("Trabeculectomy")
+                            if ("micropulse" in procedure):
+                                blockTypes.append("Micropulse")
+                            if (len(blockTypes) == 0):
+                                blockTypes.append("Custom")
+
+                        #     if ("shunt" in procedure):
+                        #         blockType = "Shunt"
+                        #     elif ("xen" in procedure and "revision" not in procedure):
+                        #         blockType = "XEN"
+                        #     elif ("trabeculectomy" in procedure):
+                        #         blockType = "Trabeculectomy"
+                        #     elif ("xen" in procedure and "revision" in procedure):
+                        #         blockType = "XENRevision"
+                        #     elif ("wound" in procedure and "revision" in procedure):
+                        #         blockType = "WoundRevision"
+                        #     elif ("vivity" in procedure):
+                        #         blockType = "Vivity"
+                        #     elif ("panoptix" in procedure):
+                        #         blockType = "PanOptix"
+                        #     elif ("toric" in procedure):
+                        #         blockType = "Premium"
+                        #     elif ("goniotomy" in procedure or "goniosynechialysis" in procedure):
+                        #         blockType = "Goniotomy"
+                        #     elif ("femto" in procedure or "lensx" in procedure or "/ora" in procedure or "catalyst" in procedure):
+                        #         blockType = "Laser"
+                        #     elif ("micropulse" in procedure):
+                        #         blockType = "Micropulse"
+                        #     elif ("canaloplasty" in procedure):
+                        #         blockType = "Canaloplasty"
+                        #     elif ("stent" in procedure):
+                        #         blockType = "Stent"
+                        #     elif "phaco" in procedure or "trimox" in procedure:
+                        #         blockType = "Regular"
+                        #     else:
+                        #         blockType = "Custom"
+
+                        # if blockType != "Custom":
+                        #     segLength = int(self.blockTimes[blockType] * self.numSubBlocks)
+                        #     length = self.blockTimes[blockType]
+                        # else:
+                        #     segLength = int(customLength * self.numSubBlocks)
+                        #     length = customLength
+
+                        if blockTypes[0] != "Custom":
+                            segLength = 0
+                            length = 0
+                            for type in blockTypes:
+                                length += self.blockTimes[type]
+                            segLength = int(length * self.numSubBlocks)
                         else:
                             segLength = int(customLength * self.numSubBlocks)
                             length = customLength
+                        
                         
                         firstEmpty, firstY = self.findFirstEmpty(segLength)
            
                         if (firstEmpty == -1):
                             continue
                         else:
-                            self.insertBlock(blockType, firstEmpty, firstY, segLength, length, name)
+                            print(blockTypes)
+                            #self.insertBlock(blockType, firstEmpty, firstY, segLength, length, name)
+                            self.insertBlock(blockTypes, firstEmpty, firstY, segLength, length, name)
     
                 self.caseCountItem.setPlainText("Cases: " + str(self.currentCaseCount))
                 self.darkenFull()
@@ -546,7 +602,8 @@ class Window(QWidget):
                         subItems = item.childItems()
                         for subItem in subItems:
                             if subItem.data(3) is not None and subItem.data(3) == 1:
-                                scheduleNames[item.data(0)] = "," + subItem.toPlainText() + "," + str(item.data(1))
+                                #scheduleNames[item.data(0)] = "," + subItem.toPlainText() + "," + str(item.data(1))
+                                scheduleNames[item.data(0)] = "," + subItem.toPlainText() + "," + str(item.data(1)) + "," + item.blockStr
 
                 for i in range(len(schedule)):
                     if schedule[i][0] == 0 and schedule[i][1] != 1:
@@ -556,8 +613,8 @@ class Window(QWidget):
 
                 scheduleFile.write(scheduleStr)
                 print("Saved schedule")
-        except:
-            print("Could not save schedule")
+        except Exception as e:
+            print("Could not save schedule:", e)
 
     def download(self):
         """ Download current schedule as a JPG image """
@@ -586,27 +643,30 @@ class Window(QWidget):
         return
 
     
-    def insertSaved(self, inputType = -1, skip = 0, name = "Patient", segLength = -1):
+    def insertSaved(self, inputType = -1, skip = 0, name = "Patient", segLength = -1, blockTypes = [0]):
         """" Insert a new schedule block for saved schedule"""
         
         if inputType == 0:
             return
         else:
-            blockType = ProcedureDicts.procedureList[inputType]
+            #blockType = ProcedureDicts.procedureList[inputType]
+            blockType = blockTypes[0]
         # Find first empty block in scene that can accommodate new insertion
         if blockType == "Custom":
             length = segLength / (1.0 * self.numSubBlocks)
         else:
-            length = self.blockTimes[blockType]
-
+            length = 0.0
+            for type in blockTypes:
+                length += self.blockTimes[type]
+        
         firstEmpty = -1
         firstY = -1
         if (skip < len(self.scene.schedule) and skip + segLength - 1 < len(self.scene.schedule)):
             firstEmpty = skip
             firstY = self.scene.schedule[firstEmpty].y
-
+        
         if firstEmpty != -1:
-            self.insertBlock(blockType, firstEmpty, firstY, segLength, length, name)
+            self.insertBlock(blockTypes, firstEmpty, firstY, segLength, length, name)
 
     def insert(self):
         """" Insert a new schedule block at the first accommodating empty slot """
@@ -623,19 +683,19 @@ class Window(QWidget):
                 rectText = "Break"
             else:
                 rectText = self.blockName
-            self.insertBlock(blockType, firstEmpty, firstY, segLength, self.blockTimes[blockType], rectText)
+            self.insertBlock([blockType], firstEmpty, firstY, segLength, self.blockTimes[blockType], rectText)
         self.darkenFull()
     
-    def insertBlock(self, blockType, firstEmpty, firstY, segLength, length, rectText):
+    def insertBlock(self, blockTypes, firstEmpty, firstY, segLength, length, rectText):
         """ Create and add a procedure block at the given empty index to the scene """
     
         timeText = self.getTimeText(firstEmpty, firstEmpty + segLength - 1)
         rect = GraphicsRectItem(0, 0, self.blockWidth, self.blockSize * length, self.timeWidth, self.typeWidth, 
-                                timeText, rectText, blockType, self.blockColors[blockType], segLength)
+                                timeText, rectText, blockTypes, self.blockColors[blockTypes[0]], segLength)
         rect.setPos(self.timeBoxWidth, firstY)
         rect.setData(0, firstEmpty)                            # id of first block segment that rect occupies
         rect.setData(1, segLength)                             # length that of procedure
-        rect.setData(2, ProcedureDicts.procedureIDs[blockType])   # identifier for graphics to tell that this is a rect
+        rect.setData(2, ProcedureDicts.procedureIDs[blockTypes[0]])   # identifier for graphics to tell that this is a rect
 
         self.scene.procedures.append(rect)
         self.scene.addItem(rect)
@@ -644,7 +704,7 @@ class Window(QWidget):
         rect.setFlag(QGraphicsItem.GraphicsItemFlag.ItemIsMovable)
         rect.setFlag(QGraphicsItem.GraphicsItemFlag.ItemIsSelectable)
 
-        if (ProcedureDicts.procedureIDs[blockType] != 1):
+        if (ProcedureDicts.procedureIDs[blockTypes[0]] != 1):
             self.currentCaseCount += 1
             self.caseCountItem.setPlainText("Cases: " + str(self.currentCaseCount))
 

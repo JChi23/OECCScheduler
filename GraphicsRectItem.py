@@ -1,6 +1,8 @@
 """ Object built off of QGraphicsRectItem that represents all procedure blocks created in schedule """
 import typing
 
+import ProcedureDicts
+
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QPen, QColor, QFont
 from PyQt6.QtWidgets import (
@@ -11,9 +13,12 @@ from PyQt6.QtWidgets import (
 
 class GraphicsRectItem(QGraphicsRectItem):
 
-    def __init__(self, x, y, blockWidth, blockHeight, timeWidth, typeWidth, time, name, blockType, blockColor, segLength):
+    desc = ""
+    blockStr = ""
+
+    def __init__(self, x, y, blockWidth, blockHeight, timeWidth, typeWidth, time, name, blockTypes, blockColor, segLength):
         super().__init__(x, y, blockWidth, blockHeight)
-        self.setBrush(blockColor)
+        #self.setBrush(blockColor)
         self.setPen(QPen(Qt.GlobalColor.black))
 
         timeFontSize = 12
@@ -21,7 +26,7 @@ class GraphicsRectItem(QGraphicsRectItem):
         typeFontSize = 11
 
         # Add name
-        if blockType == "Break":
+        if blockTypes[0] == "Break":
             rectText = QGraphicsTextItem("Break", self)
         else:
             if len(name) < 1:
@@ -31,13 +36,30 @@ class GraphicsRectItem(QGraphicsRectItem):
         rectText.setData(3, 1)              # identifier for graphics to tell that this is block text
 
         # Add type name
+        r, g, b = 0, 0, 0
+        
+        for type in blockTypes:
+            self.desc += ProcedureDicts.procedureDesc[type] + " "
+            self.blockStr += str(ProcedureDicts.procedureIDs[type]) + "-"
+            r += ProcedureDicts.blockColors[type].red()
+            g += ProcedureDicts.blockColors[type].green()
+            b += ProcedureDicts.blockColors[type].blue()
+        r /= len(blockTypes)
+        g /= len(blockTypes)
+        b /= len(blockTypes)
+        self.setBrush(QColor(r, g, b))
+
+        self.desc = self.desc[:-1]
+        self.blockStr = self.blockStr[:-1]
+        
         typeRect = QGraphicsRectItem(blockWidth, 0, typeWidth, blockHeight, self)
         typeRect.setBrush(QColor(255, 255, 255, 255))
         typeRect.setPen(QPen(Qt.GlobalColor.black))
-        typeRect.setBrush(blockColor)
+        #typeRect.setBrush(blockColor)
+        typeRect.setBrush(QColor(r, g, b))
         typeRect.setFlag(QGraphicsItem.GraphicsItemFlag.ItemIsMovable)
 
-        typeRectText = QGraphicsTextItem(blockType, self)
+        typeRectText = QGraphicsTextItem(self.desc, self)
         typeRectText.setX(blockWidth)
         typeRectText.setTextWidth(typeWidth)
         typeRectText.setData(3, 3)              # identifier for graphics to tell that this is block type text
@@ -54,7 +76,7 @@ class GraphicsRectItem(QGraphicsRectItem):
         timeRectText.setData(3, 2)              # identifier for graphics to tell that this is block time text
 
         # Adjust font sizes if needed
-        if blockType == "Custom":
+        if blockTypes[0] == "Custom":
             if segLength == 3:
                 #timeFontSize = 8
                 timeRectText.setY(-2)

@@ -127,7 +127,7 @@ class CheckableComboBox(QComboBox):
         elidedText = metrics.elidedText(text, Qt.TextElideMode.ElideRight, self.lineEdit().width())
         self.lineEdit().setText(elidedText)
 
-    def addItem(self, text, data=None):
+    def addItem(self, text, data=None, checked=False):
         item = QStandardItem()
         item.setText(text)
         if data is None:
@@ -140,7 +140,10 @@ class CheckableComboBox(QComboBox):
         # self.model().appendRow(item)
 
         item.setFlags(Qt.ItemFlag.ItemIsEnabled | Qt.ItemFlag.ItemIsUserCheckable)
-        item.setData(Qt.CheckState.Checked, Qt.ItemDataRole.CheckStateRole)
+        if checked:
+            item.setData(Qt.CheckState.Checked, Qt.ItemDataRole.CheckStateRole)
+        else:
+            item.setData(Qt.CheckState.Checked, Qt.ItemDataRole.CheckStateRole)
         #self.addItem(text, data)
         self.model().appendRow(item)
         # self.model().insertRow(item)

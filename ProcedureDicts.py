@@ -21,6 +21,7 @@ procedureIDs = { #What the 2 key value is set to for each procedure block
     "Trimox" : 16,
     "XENRevision" : 17,
     "WoundRevision" : 18,
+    "MIGS" : 19,
 }
 
 procedureList = [ #What the 2 key value is set to for each procedure block
@@ -42,7 +43,8 @@ procedureList = [ #What the 2 key value is set to for each procedure block
     "XEN",
     "Trimox",
     "XENRevision",
-    "WoundRevision"
+    "WoundRevision",
+    "MIGS",
 ]
 
 procedureDesc = {
@@ -64,6 +66,7 @@ procedureDesc = {
     "Trimox" : "Regular",
     "XENRevision" : "XEN Revision",
     "WoundRevision" : "Wound Revision",
+    "MIGS" : "MIGS",
 }
 
 blockTimes = {
@@ -85,6 +88,7 @@ blockTimes = {
     "Trimox" : 1,
     "XENRevision" : 2,
     "WoundRevision" : 1.5,
+    "MIGS" : .25,
 }
 
 blockColors = {
@@ -104,6 +108,7 @@ blockColors = {
     "PanOptix" : BlockColors.PANOPTIX.value,
     "XEN" : BlockColors.XEN.value,
     "Trimox" : BlockColors.TRIMOX.value,
-    "XENRevision" : BlockColors.REGULAR.value,
-    "WoundRevision" : BlockColors.REGULAR.value,
+    "XENRevision" : BlockColors.TORIC_ORA.value,
+    "WoundRevision" : BlockColors.TRIMOX.value,
+    "MIGS" : BlockColors.CANALOPLASTY.value,
 }
