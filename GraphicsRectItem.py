@@ -45,9 +45,9 @@ class GraphicsRectItem(QGraphicsRectItem):
             r += ProcedureDicts.blockColors[type].red()
             g += ProcedureDicts.blockColors[type].green()
             b += ProcedureDicts.blockColors[type].blue()
-        r /= len(blockTypes)
-        g /= len(blockTypes)
-        b /= len(blockTypes)
+        r = r // len(blockTypes)
+        g = g // len(blockTypes)
+        b = b // len(blockTypes)
         self.setBrush(QColor(r, g, b))
 
         self.desc = self.desc[:-1]
