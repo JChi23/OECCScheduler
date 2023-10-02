@@ -143,7 +143,7 @@ class CheckableComboBox(QComboBox):
         if checked:
             item.setData(Qt.CheckState.Checked, Qt.ItemDataRole.CheckStateRole)
         else:
-            item.setData(Qt.CheckState.Checked, Qt.ItemDataRole.CheckStateRole)
+            item.setData(Qt.CheckState.Unchecked, Qt.ItemDataRole.CheckStateRole)
         #self.addItem(text, data)
         self.model().appendRow(item)
         # self.model().insertRow(item)

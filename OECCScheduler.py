@@ -132,7 +132,7 @@ class Window(QWidget):
                 blockSegBox.setData(4, 0)           # Set 4 to be identifier for a block segment
      
                 #           UTILITY NUMBERING OF BOXES
-                # blockSegBoxText = QGraphicsTextItem(str(i *4 + j), blockSegBox)   
+                # blockSegBoxText = QGraphicsTextItem(str(i * self.numSubBlocks + j), blockSegBox)   
                 # blockSegBoxText.setPos(140, -4)
                 # blockSegBoxText.setFont(QFont("Helvetica", 6))
                 #           END UTIL
@@ -243,12 +243,16 @@ class Window(QWidget):
         # self.combo.addItems(comunes)
         # #self.combo.toggleItem(2)
         # self.combo.currentTextChanged.connect(self.textChanged2)
+        # self.procedures = CheckableComboBox()
+        # self.procedures.addItems(["Custom", "Break"] + ProcedureDicts.procedureList[3:(len(ProcedureDicts.procedureList) - 1)])
+        # self.procedures.currentTextChanged.connect(self.textChanged2)
 
         insertGroupBox = QGroupBox("Insert Procedure")
         insertGroupLayout = QFormLayout()
         insertGroupLayout.addRow(self.patientName)
         insertGroupLayout.addRow(QLabel("Procedure:"), setBlock)
         #insertGroupLayout.addRow(QLabel("Procedure:"), self.combo)
+        #insertGroupLayout.addRow(QLabel("Procedure:"), self.procedures)
         insertGroupLayout.addRow(self.customLengthLabel, self.customLength)
         insertGroupLayout.addRow(insert)
         insertGroupLayout.setSizeConstraint(QFormLayout.SizeConstraint.SetFixedSize)
@@ -292,12 +296,14 @@ class Window(QWidget):
         openFile.clicked.connect(self.openFile)
         vbox.addWidget(openFile)
 
-        # UTILITY BUTTON
-        reset = QPushButton("Reset")
-        reset.setIcon(QIcon(os.path.join(self.baseDir, "icons", "reset.png")))
-        reset.clicked.connect(self.darkenFull)
-        vbox.addWidget(reset)
-        # UTIL END
+        #                       UTILITY BUTTON
+
+        # reset = QPushButton("Reset")
+        # reset.setIcon(QIcon(os.path.join(self.baseDir, "icons", "reset.png")))
+        # reset.clicked.connect(self.darkenFull)
+        # vbox.addWidget(reset)
+        
+        #                           UTIL END
 
         squish = QPushButton("Collapse")
         squish.setIcon(QIcon(os.path.join(self.baseDir, "icons", "squish.png")))
@@ -499,15 +505,12 @@ class Window(QWidget):
                                     blockTypes.append("XEN")
                             elif ("wound" in procedure and "revision" in procedure):
                                 blockTypes.append("WoundRevision")
+                            elif ("stent" in procedure):
+                                blockTypes.append("MIGS")
 
                             if ("goniotomy" in procedure or "goniosynechialysis" in procedure):
-                                #blockTypes.append("Goniotomy")
-                                blockTypes.append("MIGS")
-                            if ("stent" in procedure):
-                                #blockTypes.append("Stent")
                                 blockTypes.append("MIGS")
                             if ("canaloplasty" in procedure):
-                                #blockTypes.append("Canaloplasty")
                                 blockTypes.append("MIGS")
                             if ("shunt" in procedure):
                                 blockTypes.append("Shunt")
@@ -757,7 +760,7 @@ class Window(QWidget):
         print(i)
     
     def textChanged2(self, s):
-        for item in self.combo.currentData():
+        for item in self.procedures.currentData():
             print(item)
         #print(s)
         print("END")
