@@ -1,6 +1,6 @@
-pyinstaller —name=“Surgery Scheduler” —windowed —icon=“doc.icns” —add-data=“resources:resources” Main.py 
+pyinstaller —name=“Surgery Scheduler” —windowed —icon=“doc.icns” —add-data=“resources:resources” —add-data=“icons:icons” Main.py 
 
-^packaging
+^ Command for packaging
 
 create-dmg \
     --volname "Surgery Simulator" \
@@ -14,10 +14,10 @@ create-dmg \
     "dist/Surgery Scheduler.dmg" \
     "dist/dmg"
 
-^dmg
+^ Command for creating dmg
 
 sudo spctl --master-disable
 
-^run software from anywhere
+^Command to run software from anywhere
 
 -requires numpy, pyqt6, openpyxl
