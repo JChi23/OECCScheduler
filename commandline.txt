@@ -1,4 +1,8 @@
-pyinstaller —name=“Surgery Scheduler” —windowed —icon=“doc.icns” —add-data=“resources:resources” —add-data=“icons:icons” Main.py 
+source bin/activate
+
+^ Command for activating virtual environment
+ 
+pyinstaller --name="Surgery Scheduler" --windowed --icon="doc.icns" --add-data="resources:resources" --add-data="icons:icons" Main.py
 
 ^ Command for packaging
 

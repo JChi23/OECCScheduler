@@ -1,6 +1,6 @@
 import sys, os
 
-from OECCScheduler import Window
+from Scheduler import Window
 from PyQt6.QtWidgets import QApplication
 
 
